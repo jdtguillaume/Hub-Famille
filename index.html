@@ -1,0 +1,128 @@
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Notre hub</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#FFF8EC;--card:#fff;--tx:#4A4A4A;--mut:#8a8a8a;--bd:#E3DCCB;--lav:#D9CCF2;--lavs:#EFE9F9;--g:#B5D8F7;--gs:#DCEBFA;--p:#F8C8DC;--ps:#FCE4EC;--c:#C7EBD6;--cs:#E5F5EC;--hol:#FFE3B5;--now:#FFC9DD}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1f1d24;--card:#2a2831;--tx:#ece8f2;--mut:#a9a4b5;--bd:#3d3a47;--lavs:#35304a;--gs:#2d3a4a;--ps:#4a2f3b;--cs:#2c4238;--hol:#5a4a2a;--now:#6a3a50}}
+:root[data-theme="dark"]{--bg:#1f1d24;--card:#2a2831;--tx:#ece8f2;--mut:#a9a4b5;--bd:#3d3a47;--lavs:#35304a;--gs:#2d3a4a;--ps:#4a2f3b;--cs:#2c4238;--hol:#5a4a2a;--now:#6a3a50}
+html,body{height:100%;margin:0}body{display:flex;flex-direction:column;background:var(--bg);color:var(--tx);font:15px Arial,Helvetica,sans-serif}
+header{position:relative;background:var(--lav);color:#3a3350;text-align:center;font-weight:700;font-size:18px;padding:10px}
+#m{flex:1;overflow:auto;padding:12px;max-width:640px;width:100%;margin:0 auto;box-sizing:border-box}
+nav{display:flex;background:var(--card);border-top:1px solid var(--bd)}nav button{flex:1;border:0;background:none;color:var(--mut);padding:9px 0;font-size:12px}nav button.on{color:var(--tx);font-weight:700;background:var(--lavs)}
+h2{font-size:15px;margin:16px 0 8px;display:flex;justify-content:space-between;align-items:center}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.row{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--bd);border-left:6px solid var(--lav);border-radius:10px;padding:8px 10px;margin-bottom:6px}
+.row .t{flex:1;min-width:0}.row small,.mut{color:var(--mut);font-size:12px}.row.g{border-left-color:var(--g)}.row.p{border-left-color:var(--p)}.row.c{border-left-color:var(--c)}
+.late{background:#FFD1C1;color:#4A4A4A;border-radius:6px;padding:0 5px}
+.chip{border-radius:10px;padding:1px 8px;font-size:11px;color:#3a3a3a}
+.add,.b1,.b0,.bd,.seg button{border:0;border-radius:10px;padding:8px 12px;font-size:14px;background:var(--lavs);color:var(--tx)}.add{padding:4px 12px}.b1{background:var(--lav);color:#3a3350;font-weight:700}.bd{background:#FFD1C1;color:#4A4A4A}
+.seg{display:flex;gap:6px;margin-bottom:10px}.seg button{flex:1}.seg .on{font-weight:700;color:#3a3a3a}
+#undo{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;border-radius:10px;padding:5px 9px;background:var(--lavs);color:var(--tx);font-size:13px}.cards{display:flex;gap:6px}.cards .card{flex:1;text-align:center;margin:0;color:#3a3a3a}.cards b{font-size:22px;display:block}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center}.cal b{font-size:12px;color:var(--mut)}
+.d{background:var(--card);border:1px solid var(--bd);border-radius:8px;min-height:44px;padding:3px 0;font-size:13px}.d.o{opacity:.4}.d.h{background:var(--hol)}.d.s{outline:2px solid var(--lav)}.d.t{background:var(--now)}
+.d i{display:inline-block;width:7px;height:7px;border-radius:50%;margin:1px}.d div{min-height:10px;font-size:10px}
+.nav2{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-weight:700;text-transform:capitalize}
+.ln{display:flex;gap:6px;padding:7px 4px;border-bottom:1px solid var(--bd)}.ln span:first-child{flex:1}.ln span+span{width:72px;text-align:right}
+.tot{font-weight:700}.ov{position:fixed;inset:0;background:#0006;display:flex;align-items:flex-end;justify-content:center;z-index:9}
+.sh{background:var(--card);width:100%;max-width:640px;border-radius:16px 16px 0 0;padding:16px;box-sizing:border-box;max-height:90%;overflow:auto;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+.sh label{display:block;font-size:12px;color:var(--mut);margin-top:10px}.sh input,.sh select{width:100%;box-sizing:border-box;font-size:16px;padding:9px;margin-top:3px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx)}
+.bt{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}#toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:#444;color:#fff;padding:8px 14px;border-radius:20px;font-size:13px;z-index:10}
+#login{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:20}#login input{width:100%;box-sizing:border-box;font-size:16px;padding:10px;margin:6px 0;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx)}
+</style></head><body>
+<header>Notre hub<button id="undo" onclick="undo()">↶ Annuler</button></header><div id="m"></div>
+<div id="login"><div class="card" style="width:min(340px,90%)"><h3 style="margin-top:0">Notre hub</h3><input id="em" type="email" placeholder="E-mail" autocomplete="username"><input id="pw" type="password" placeholder="Mot de passe" autocomplete="current-password"><div id="err" style="color:#c0392b;font-size:13px;min-height:18px"></div><button class="b1" style="width:100%" onclick="login()">Se connecter</button></div></div>
+<nav><button data-t="home">🏠<br>Accueil</button><button data-t="agenda">📅<br>Agenda</button><button data-t="tasks">✅<br>Rappels</button><button data-t="budget">💶<br>Budget</button><button data-t="savings">🏦<br>Épargne</button></nav>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const p2=n=>String(n).padStart(2,'0'),iso=d=>d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate()),dt=s=>new Date(s+'T00:00:00');
+const add=(s,n)=>{const d=dt(s);d.setDate(d.getDate()+n);return iso(d)};
+const addM=(s,n)=>{const d=dt(s),k=d.getDate();d.setDate(1);d.setMonth(d.getMonth()+n);d.setDate(Math.min(k,new Date(d.getFullYear(),d.getMonth()+1,0).getDate()));return iso(d)};
+const diffD=(a,b)=>Math.round((dt(b)-dt(a))/864e5),TODAY=()=>iso(new Date());
+const fd=s=>s?dt(s).toLocaleDateString('fr-FR',{weekday:'short',day:'2-digit',month:'2-digit'}):'';
+const eur=n=>(+n||0).toLocaleString('fr-FR',{style:'currency',currency:'EUR'}),uid=()=>Math.random().toString(36).slice(2,9);
+const W={g:'Guillaume',p:'Pauline',c:'Commun'},OW=[['g','Guillaume'],['p','Pauline'],['c','Commun']];
+let S={budget:{rev:{g:0,p:0},lines:[],hist:[],mois:TODAY().slice(0,7)},agenda:{ev:[],bd:[],tk:[]},savings:{acc:[],mv:{}}},base={};
+let db=null,tab='home',acct='c',calY=new Date().getFullYear(),calM=new Date().getMonth(),selDay=TODAY(),tm={};
+function toast(t){const e=document.createElement('div');e.id='toast';e.textContent=t;document.body.append(e);setTimeout(()=>e.remove(),3000)}
+function strip(o){const c={...o};delete c.prev;return c}
+const busy={};function persist(k){busy[k]=1;clearTimeout(tm[k]);tm[k]=setTimeout(()=>fs.doc('app/'+k).set(S[k]).catch(()=>toast('Enregistrement impossible')).finally(()=>busy[k]=0),400)}
+function save(k){S[k].prev=base[k];base[k]=JSON.stringify(strip(S[k]));render();persist(k)}
+function undo(){const k=tab==='budget'?'budget':tab==='savings'?'savings':'agenda',p=S[k].prev;if(!p)return toast('Rien à annuler');const cur=strip(S[k]);S[k]=JSON.parse(p);S[k].prev=JSON.stringify(cur);base[k]=JSON.stringify(strip(S[k]));render();persist(k);toast('Dernière modification annulée (re-clique pour rétablir)')}
+const FER={};function fer(y){if(FER[y])return FER[y];const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),da=(h+l-7*m+114)%31+1,E=y+'-'+p2(mo)+'-'+p2(da),o={};
+o[y+'-01-01']="Jour de l'an";o[add(E,1)]='Lundi de Pâques';o[y+'-05-01']='Fête du Travail';o[y+'-05-08']='Victoire 1945';o[add(E,39)]='Ascension';o[add(E,50)]='Lundi de Pentecôte';o[y+'-07-14']='Fête nationale';o[y+'-08-15']='Assomption';o[y+'-11-01']='Toussaint';o[y+'-11-11']='Armistice 1918';o[y+'-12-25']='Noël';return FER[y]=o}
+const hol=s=>fer(+s.slice(0,4))[s],endOf=e=>e.e&&e.e>=e.d?e.e:e.d,onDay=(e,x)=>e.d<=x&&x<=endOf(e);
+function nextTk(t){if(!t.d)return null;const T=TODAY();if(!t.r||t.r==='0'||t.d>=T)return t.d;if(t.r==='w')return add(t.d,7*Math.ceil(diffD(t.d,T)/7));
+const n=t.r==='m'?1:12,k=Math.floor(((+T.slice(0,4)-+t.d.slice(0,4))*12+(+T.slice(5,7)-+t.d.slice(5,7)))/n);let r=addM(t.d,k*n);if(r<T)r=addM(t.d,(k+1)*n);return r}
+function nextBd(b){const T=TODAY(),y=+T.slice(0,4);let r=y+b.d.slice(4);if(r<T)r=(y+1)+b.d.slice(4);return r}
+const chip=w=>`<span class="chip" style="background:var(--${w})">${W[w]}</span>`;
+function sheet(title,F,V,ok,del){const o=document.createElement('div');o.className='ov';
+o.innerHTML=`<div class="sh"><h3>${esc(title)}</h3>${F.map(f=>`<label>${f.l}${f.t==='select'?`<select data-k="${f.k}">${f.o.map(([v,l])=>`<option value="${v}"${V[f.k]==v?' selected':''}>${l}</option>`).join('')}</select>`:`<input data-k="${f.k}" type="${f.t}"${f.t==='number'?' step="0.01" inputmode="decimal"':''} value="${esc(V[f.k]??'')}">`}</label>`).join('')}<div class="bt"><button class="b0">Annuler</button>${del?'<button class="bd">Supprimer</button>':''}<button class="b1">Valider</button></div></div>`;
+document.body.append(o);const cl=()=>o.remove();o.onclick=e=>{if(e.target===o)cl()};o.querySelector('.b0').onclick=cl;
+if(del)o.querySelector('.bd').onclick=()=>{del();cl()};
+o.querySelector('.b1').onclick=()=>{const r={};o.querySelectorAll('[data-k]').forEach(i=>r[i.dataset.k]=i.type==='number'?(i.value===''?0:+i.value):i.value);ok(r);cl()}}
+function evForm(id,day){const e=S.agenda.ev.find(x=>x.id===id)||{w:'c',d:day||TODAY()};
+sheet(id?'Modifier l’événement':'Nouvel événement',[{k:'t',l:'Événement',t:'text'},{k:'w',l:'Pour',t:'select',o:OW},{k:'d',l:'Date de début',t:'date'},{k:'s',l:'Heure de début (vide = toute la journée)',t:'time'},{k:'e',l:'Date de fin (si plusieurs jours)',t:'date'},{k:'f',l:'Heure de fin',t:'time'}],e,r=>{if(!r.t||!r.d)return;if(id)Object.assign(e,r);else S.agenda.ev.push({id:uid(),...r});save('agenda')},id&&(()=>{S.agenda.ev=S.agenda.ev.filter(x=>x.id!==id);save('agenda')}))}
+function bdForm(id){const e=S.agenda.bd.find(x=>x.id===id)||{w:'c'};
+sheet(id?'Modifier':'Nouvel anniversaire',[{k:'n',l:'Nom',t:'text'},{k:'w',l:'Dans la liste de',t:'select',o:OW},{k:'d',l:'Date de naissance (année inconnue : 1900)',t:'date'}],e,r=>{if(!r.n||!r.d)return;if(id)Object.assign(e,r);else S.agenda.bd.push({id:uid(),...r});save('agenda')},id&&(()=>{S.agenda.bd=S.agenda.bd.filter(x=>x.id!==id);save('agenda')}))}
+function tkForm(id){const e=S.agenda.tk.find(x=>x.id===id)||{w:'c',r:'0',p:'n'};
+sheet(id?'Modifier le rappel':'Nouveau rappel',[{k:'t',l:'Tâche',t:'text'},{k:'w',l:'Pour',t:'select',o:OW},{k:'d',l:'Échéance (première date)',t:'date'},{k:'r',l:'Répétition',t:'select',o:[['0','Une seule fois'],['w','Chaque semaine'],['m','Chaque mois'],['y','Chaque année']]},{k:'p',l:'Priorité',t:'select',o:[['h','Haute'],['n','Normale'],['b','Basse']]}],e,r=>{if(!r.t)return;if(id)Object.assign(e,r);else S.agenda.tk.push({id:uid(),...r});save('agenda')},id&&(()=>{S.agenda.tk=S.agenda.tk.filter(x=>x.id!==id);save('agenda')}))}
+function lnForm(id,t){const e=S.budget.lines.find(x=>x.id===id)||{a:acct,t,pr:0,re:0};
+sheet(id?'Modifier la ligne':'Nouvelle ligne',[{k:'n',l:'Catégorie',t:'text'},{k:'pr',l:'Prévu (€)',t:'number'},{k:'re',l:'Réel (€)',t:'number'}],e,r=>{if(!r.n)return;if(id)Object.assign(e,r);else S.budget.lines.push({id:uid(),a:acct,t:e.t,...r});save('budget')},id&&(()=>{S.budget.lines=S.budget.lines.filter(x=>x.id!==id);save('budget')}))}
+function revForm(){sheet('Revenus nets mensuels',[{k:'g',l:'Guillaume (€)',t:'number'},{k:'p',l:'Pauline (€)',t:'number'}],S.budget.rev,r=>{S.budget.rev=r;save('budget')})}
+function closeMonth(){sheet('Clôturer '+S.budget.mois+' ? Les « Réel » seront archivés puis remis à zéro.',[],{},()=>{const B=S.budget;B.hist.push({m:B.mois,c:dep('c','re'),g:dep('g','re'),p:dep('p','re'),e:sum(0,'epargne','re'),l:B.lines.filter(l=>l.t!=='epargne'&&l.re).map(l=>({a:l.a,n:l.n,v:+l.re}))});B.lines.forEach(l=>l.re=0);B.mois=addM(B.mois+'-01',1).slice(0,7);save('budget')})}
+const evSort=(a,b)=>((a.d<TODAY()?TODAY():a.d)+(a.s||'')).localeCompare((b.d<TODAY()?TODAY():b.d)+(b.s||''));
+const evRow=e=>`<div class="row ${e.w}" onclick="evForm('${e.id}')"><div class="t">${esc(e.t)}<br><small>${fd(e.d)}${e.e&&e.e>e.d?' → '+fd(e.e):''} · ${e.s?e.s+(e.f?' - '+e.f:''):'Toute la journée'}</small></div>${chip(e.w)}</div>`;
+const bdRow=b=>{const n=nextBd(b),j=diffD(TODAY(),n),y=+b.d.slice(0,4);return `<div class="row ${b.w}" onclick="bdForm('${b.id}')"><div class="t">🎂 ${esc(b.n)}<br><small>${fd(n)}${y>1900?' · '+(+n.slice(0,4)-y)+' ans':''}</small></div><b>${j?'dans '+j+' j':'Aujourd’hui'}</b></div>`};
+const RP={0:'',w:'Chaque semaine',m:'Chaque mois',y:'Chaque année'};
+const tkRow=t=>{const n=nextTk(t),late=n&&n<TODAY();return `<div class="row ${t.w}" onclick="tkForm('${t.id}')"><div class="t">${esc(t.t)}<br><small>${n?(late?'<span class="late">'+fd(n)+'</span>':fd(n)):'Sans date'}${t.r&&t.r!=='0'?' · ↻ '+RP[t.r]:''} · ${{h:'Haute',n:'Normale',b:'Basse'}[t.p]}</small></div><button class="add" onclick="event.stopPropagation();doneTk('${t.id}')">✓</button></div>`};
+function doneTk(id){const t=S.agenda.tk.find(x=>x.id===id);t.x=1;save('agenda')}
+const upEv=()=>S.agenda.ev.filter(e=>endOf(e)>=TODAY()).sort(evSort),upBd=()=>[...S.agenda.bd].sort((a,b)=>nextBd(a).localeCompare(nextBd(b))),upTk=()=>S.agenda.tk.filter(t=>!t.x).sort((a,b)=>(nextTk(a)||'9').localeCompare(nextTk(b)||'9'));
+const none=t=>`<div class="mut" style="padding:6px">${t}</div>`;
+function home(){const T=TODAY(),n=w=>S.agenda.ev.filter(e=>e.w===w&&onDay(e,T)).length;
+return `<div class="mut" style="margin-bottom:8px">${dt(T).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}${hol(T)?' · '+hol(T):''}</div><div class="cards">${['g','p','c'].map(w=>`<div class="card" style="background:var(--${w})"><b>${n(w)}</b>${W[w]}</div>`).join('')}</div>
+<h2>Prochains événements</h2>${upEv().slice(0,8).map(evRow).join('')||none('Rien de prévu')}
+<h2>Prochains anniversaires</h2>${upBd().slice(0,4).map(bdRow).join('')||none('Aucun anniversaire')}
+<h2>Rappels</h2>${upTk().slice(0,6).map(tkRow).join('')||none('Aucun rappel')}<h2>Sauvegarde</h2><div class="seg"><button onclick="exportData()">Exporter</button><button onclick="importData()">Importer</button><button onclick="logout()">Déconnexion</button></div>`}
+function agenda(){const first=new Date(calY,calM,1),start=add(iso(first),-((first.getDay()+6)%7));let h=`<div class="nav2"><button class="add" onclick="cm(-1)">‹</button>${first.toLocaleDateString('fr-FR',{month:'long',year:'numeric'})}<button class="add" onclick="cm(1)">›</button></div><div class="cal">`+['L','M','M','J','V','S','D'].map(x=>`<b>${x}</b>`).join('');
+for(let i=0;i<42;i++){const x=add(start,i),ev=S.agenda.ev.filter(e=>onDay(e,x)),bd=S.agenda.bd.some(b=>b.d.slice(4)===x.slice(4));
+h+=`<div class="d${+x.slice(5,7)-1===calM?'':' o'}${hol(x)?' h':''}${x===selDay?' s':''}${x===TODAY()?' t':''}" onclick="selDay='${x}';render()">${+x.slice(8)}<div>${ev.slice(0,3).map(e=>`<i style="background:var(--${e.w})"></i>`).join('')}${bd?'🎂':''}</div></div>`}
+const ev=S.agenda.ev.filter(e=>onDay(e,selDay)),bd=S.agenda.bd.filter(b=>b.d.slice(4)===selDay.slice(4));
+return h+`</div><h2>${fd(selDay)}${hol(selDay)?' · '+hol(selDay):''}<button class="add" onclick="evForm('','${selDay}')">+ Événement</button></h2>${ev.map(evRow).join('')+bd.map(bdRow).join('')||none('Rien ce jour-là')}
+<h2>Anniversaires<button class="add" onclick="bdForm()">+</button></h2>${upBd().map(bdRow).join('')||none('Aucun anniversaire')}
+<h2>Tous les événements à venir</h2>${upEv().map(evRow).join('')||none('Rien de prévu')}`}
+function cm(n){calM+=n;if(calM<0){calM=11;calY--}if(calM>11){calM=0;calY++}render()}
+function tasks(){const done=S.agenda.tk.filter(t=>t.x);return `<h2>Rappels à faire<button class="add" onclick="tkForm()">+ Rappel</button></h2>${upTk().map(tkRow).join('')||none('Aucun rappel')}${done.length?`<h2>Terminés</h2>`+done.map(t=>`<div class="row ${t.w}" onclick="tkForm('${t.id}')"><div class="t"><s>${esc(t.t)}</s></div><button class="add" onclick="event.stopPropagation();S.agenda.tk.find(x=>x.id==='${t.id}').x=0;save('agenda')">↺</button></div>`).join(''):''}`}
+const sum=(a,t,f)=>S.budget.lines.filter(l=>(!a||l.a===a)&&(!t||l.t===t)).reduce((s,l)=>s+(+l[f]||0),0),dep=(a,f)=>sum(a,'fixe',f)+sum(a,'var',f)+sum(a,'credit',f);
+const shr=w=>{const r=S.budget.rev,t=(+r.g||0)+(+r.p||0);return t?(+r[w]||0)/t:0};
+const TY=[['fixe','Dépenses fixes'],['var','Dépenses variables'],['credit','Prêts / crédits'],['epargne','Épargne']];
+function budget(){const B=S.budget,mo=dt(B.mois+'-01').toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
+let h=`<div class="seg">${OW.slice().reverse().map(([k,l])=>`<button class="${acct===k?'on':''}" style="background:var(--${k})" onclick="acct='${k}';render()">${l}</button>`).join('')}</div><div class="mut" style="text-transform:capitalize">${mo}</div>`;
+const pc=dep('c','pr');
+if(acct==='c')h+=`<h2>Revenus et répartition<button class="add" onclick="revForm()">Modifier</button></h2><div class="card">${['g','p'].map(w=>`<div class="ln"><span>${W[w]} · ${eur(B.rev[w])}</span><span>${Math.round(shr(w)*100)} %</span><span>${eur(pc*shr(w))}</span></div>`).join('')}<div class="mut">Part de chacun = dépenses communes prévues (${eur(pc)}) × sa part de revenu</div></div>`;
+else{const rv=+B.rev[acct]||0,part=pc*shr(acct);h+=`<div class="card"><div class="ln"><span>Revenu net</span><span>${eur(rv)}</span></div><div class="ln"><span>Part du compte commun</span><span>− ${eur(part)}</span></div><div class="ln tot"><span>Revenu disponible</span><span>${eur(rv-part)}</span></div><div class="ln"><span>Reste prévu / réel</span><span>${eur(rv-part-dep(acct,'pr')-sum(acct,'epargne','pr'))}</span><span>${eur(rv-part-dep(acct,'re')-sum(acct,'epargne','re'))}</span></div></div>`}
+for(const [t,l] of TY){const L=B.lines.filter(x=>x.a===acct&&x.t===t);if(acct==='c'&&t==='epargne')continue;
+h+=`<h2>${l}<button class="add" onclick="lnForm('','${t}')">+</button></h2><div class="card"><div class="ln mut"><span></span><span>Prévu</span><span>Réel</span><span>Écart</span></div>${L.map(x=>`<div class="ln" onclick="lnForm('${x.id}')"><span>${esc(x.n)}</span><span>${eur(x.pr)}</span><span>${eur(x.re)}</span><span>${eur(x.pr-x.re)}</span></div>`).join('')||none('Vide')}<div class="ln tot"><span>Total</span><span>${eur(sum(acct,t,'pr'))}</span><span>${eur(sum(acct,t,'re'))}</span><span>${eur(sum(acct,t,'pr')-sum(acct,t,'re'))}</span></div></div>`}
+h+=`<button class="b1" style="width:100%;margin-top:12px" onclick="closeMonth()">Clôturer le mois</button><h2>Récap de l’année</h2>`+recap()+`<h2>Mois passés</h2>`+(B.hist.slice().reverse().map(x=>`<div class="card"><b>${x.m}</b><br><small class="mut">Dépenses réelles — Commun ${eur(x.c)} · Guillaume ${eur(x.g)} · Pauline ${eur(x.p)} · Épargne ${eur(x.e)}</small></div>`).join('')||none('Aucun mois archivé'));return h}
+function recap(){const y=S.budget.mois.slice(0,4),H=S.budget.hist.filter(x=>x.m.slice(0,4)===y);if(!H.length)return none('Archive un mois pour voir le récap');
+const T=x=>(+x.c||0)+(+x.g||0)+(+x.p||0),tot=H.reduce((s,x)=>s+T(x),0),mx=H.reduce((a,b)=>T(b)>T(a)?b:a),mn=H.reduce((a,b)=>T(b)<T(a)?b:a),by={};
+H.forEach(x=>(x.l||[]).forEach(o=>{const k=o.a+'|'+o.n;by[k]=(by[k]||0)+o.v}));const top=Object.entries(by).sort((a,b)=>b[1]-a[1]).slice(0,10);
+return `<div class="card"><div class="ln"><span>Mois archivés</span><span>${H.length}</span></div><div class="ln"><span>Total dépenses</span><span>${eur(tot)}</span></div><div class="ln"><span>Moyenne / mois</span><span>${eur(tot/H.length)}</span></div><div class="ln"><span>Plus dépensier</span><span>${mx.m}</span><span>${eur(T(mx))}</span></div><div class="ln"><span>Moins dépensier</span><span>${mn.m}</span><span>${eur(T(mn))}</span></div></div><div class="card"><b>Par compte (année)</b>${OW.map(([k,l])=>`<div class="ln"><span>${l}</span><span>${eur(H.reduce((s,x)=>s+(+x[k]||0),0))}</span></div>`).join('')}</div>`+(top.length?`<div class="card"><b>Top 10 des dépenses</b>${top.map(([k,v])=>{const [a,n]=k.split('|');return `<div class="ln"><span>${esc(n)} <small class="mut">${W[a]}</small></span><span>${eur(v)}</span></div>`}).join('')}</div>`:'')}
+const bal=a=>(+a.s||0)+Object.values(S.savings.mv).reduce((s,m)=>s+(+m[a.id]||0),0);
+function savings(){const A=S.savings.acc,tot=A.reduce((s,a)=>s+bal(a),0),M=Object.keys(S.savings.mv).sort().reverse();
+return `<h2>Soldes<button class="add" onclick="accForm()">+ Compte</button></h2><div class="card">${A.map(a=>`<div class="ln" onclick="accForm('${a.id}')"><span>${esc(a.n)}</span><span>${tot?Math.round(bal(a)/tot*100):0} %</span><span>${eur(bal(a))}</span></div>`).join('')||none('Aucun compte')}<div class="ln tot"><span>Total épargne</span><span></span><span>${eur(tot)}</span></div></div><h2>Versements<button class="add" onclick="mvForm()">+ Mois</button></h2>${M.map(m=>{const t=Object.values(S.savings.mv[m]).reduce((s,x)=>s+(+x||0),0);return `<div class="row" onclick="mvForm('${m}')"><div class="t">${dt(m+'-01').toLocaleDateString('fr-FR',{month:'long',year:'numeric'})}</div><b>${eur(t)}</b></div>`}).join('')||none('Aucun versement')}`}
+function accForm(id){const e=S.savings.acc.find(x=>x.id===id)||{s:0};sheet(id?'Modifier le compte':'Nouveau compte',[{k:'n',l:'Nom',t:'text'},{k:'s',l:'Solde de départ (€)',t:'number'}],e,r=>{if(!r.n)return;if(id)Object.assign(e,r);else S.savings.acc.push({id:uid(),...r});save('savings')},id&&(()=>{S.savings.acc=S.savings.acc.filter(x=>x.id!==id);save('savings')}))}
+function mvForm(m){const mo=m||TODAY().slice(0,7);sheet('Versements de '+mo,S.savings.acc.map(a=>({k:a.id,l:a.n+' (€ ajoutés)',t:'number'})),S.savings.mv[mo]||{},r=>{S.savings.mv[mo]=r;save('savings')})}
+const V={home,agenda,tasks,budget,savings};
+function render(){$('#m').innerHTML=V[tab]();document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===tab))}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{tab=b.dataset.t;render();$('#m').scrollTop=0});
+render();
+for(const k in S)base[k]=JSON.stringify(strip(S[k]));
+const cfg={apiKey:"AIzaSyCi2wrQeSf6DwIgG4CmE7b5wcaHK-yVgY8",authDomain:"hub-famille-3c14f.firebaseapp.com",projectId:"hub-famille-3c14f",storageBucket:"hub-famille-3c14f.firebasestorage.app",messagingSenderId:"252415227259",appId:"1:252415227259:web:082abd520d943faf77b9de"};
+firebase.initializeApp(cfg);const auth=firebase.auth(),fs=firebase.firestore();let unsub=[];
+function login(){const e=$('#em').value.trim(),p=$('#pw').value;$('#err').textContent='';auth.signInWithEmailAndPassword(e,p).catch(()=>$('#err').textContent='E-mail ou mot de passe incorrect')}
+function logout(){auth.signOut()}
+auth.onAuthStateChanged(u=>{unsub.forEach(f=>f());unsub=[];$('#login').style.display=u?'none':'flex';if(!u)return;
+for(const k of['budget','agenda','savings'])unsub.push(fs.doc('app/'+k).onSnapshot(sn=>{if(sn.exists&&!busy[k]){S[k]=Object.assign(S[k],JSON.parse(JSON.stringify(sn.data())));base[k]=JSON.stringify(strip(S[k]));render()}},()=>toast('Accès refusé ou connexion perdue')))});
+function exportData(){sheet('Copie tout ce texte (sauvegarde)',[{k:'j',l:'Données',t:'text'}],{j:JSON.stringify({budget:strip(S.budget),agenda:strip(S.agenda),savings:strip(S.savings)})},()=>{})}
+function importData(){sheet('Importer des données',[{k:'j',l:'Colle ici le texte de sauvegarde',t:'text'}],{},r=>{try{const d=JSON.parse(r.j);['budget','agenda','savings'].forEach(k=>{if(d[k]){S[k]=d[k];save(k)}});toast('Données importées')}catch(e){toast('Texte invalide')}})}
+</script></body></html>
