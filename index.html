@@ -43,6 +43,10 @@ const eur=n=>(+n||0).toLocaleString('fr-FR',{style:'currency',currency:'EUR'}),u
 const W={g:'Guillaume',p:'Pauline',c:'Commun'},OW=[['g','Guillaume'],['p','Pauline'],['c','Commun']];
 let S={budget:{rev:{g:0,p:0},lines:[],hist:[],mois:TODAY().slice(0,7)},agenda:{ev:[],bd:[],tk:[]},savings:{acc:[],mv:{}}},base={};
 let db=null,tab='home',acct='c',calY=new Date().getFullYear(),calM=new Date().getMonth(),selDay=TODAY(),tm={};
+let me='';const nameOf=e=>{e=(e||'').toLowerCase();return e.includes('pauline')?'Pauline':e.includes('guillaume')?'Guillaume':e.split('@')[0]};
+const CP={'€':128,'‚':130,'ƒ':131,'„':132,'…':133,'†':134,'‡':135,'ˆ':136,'‰':137,'Š':138,'‹':139,'Œ':140,'Ž':142,'‘':145,'’':146,'“':147,'”':148,'•':149,'–':150,'—':151,'˜':152,'™':153,'š':154,'›':155,'œ':156,'ž':158,'Ÿ':159};
+function fixMoji(s){if(!/[ÃÂâ]/.test(s))return s;try{const b=Uint8Array.from([...s].map(c=>{const n=c.charCodeAt(0);if(n<256)return n;const m=CP[c];if(m===undefined)throw 0;return m}));return new TextDecoder('utf-8',{fatal:true}).decode(b)}catch(e){return s}}
+function deepFix(o){let ch=false;for(const k in o){const v=o[k];if(typeof v==='string'){const f=fixMoji(v);if(f!==v){o[k]=f;ch=true}}else if(v&&typeof v==='object'&&deepFix(v))ch=true}return ch}
 function toast(t){const e=document.createElement('div');e.id='toast';e.textContent=t;document.body.append(e);setTimeout(()=>e.remove(),3000)}
 function strip(o){const c={...o};delete c.prev;return c}
 const busy={};function persist(k){busy[k]=1;clearTimeout(tm[k]);tm[k]=setTimeout(()=>fs.doc('app/'+k).set(S[k]).catch(()=>toast('Enregistrement impossible')).finally(()=>busy[k]=0),400)}
@@ -79,10 +83,10 @@ function doneTk(id){const t=S.agenda.tk.find(x=>x.id===id);t.x=1;save('agenda')}
 const upEv=()=>S.agenda.ev.filter(e=>endOf(e)>=TODAY()).sort(evSort),upBd=()=>[...S.agenda.bd].sort((a,b)=>nextBd(a).localeCompare(nextBd(b))),upTk=()=>S.agenda.tk.filter(t=>!t.x).sort((a,b)=>(nextTk(a)||'9').localeCompare(nextTk(b)||'9'));
 const none=t=>`<div class="mut" style="padding:6px">${t}</div>`;
 function home(){const T=TODAY(),n=w=>S.agenda.ev.filter(e=>e.w===w&&onDay(e,T)).length;
-return `<div class="mut" style="margin-bottom:8px">${dt(T).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}${hol(T)?' · '+hol(T):''}</div><div class="cards">${['g','p','c'].map(w=>`<div class="card" style="background:var(--${w})"><b>${n(w)}</b>${W[w]}</div>`).join('')}</div>
+return `<div style="font-size:22px;font-weight:700;margin:2px 0 4px">Bonjour ${esc(me)} 👋</div><div class="mut" style="margin-bottom:8px">${dt(T).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}${hol(T)?' · '+hol(T):''}</div><div class="cards">${['g','p','c'].map(w=>`<div class="card" style="background:var(--${w})"><b>${n(w)}</b>${W[w]}</div>`).join('')}</div>
 <h2>Prochains événements</h2>${upEv().slice(0,8).map(evRow).join('')||none('Rien de prévu')}
 <h2>Prochains anniversaires</h2>${upBd().slice(0,4).map(bdRow).join('')||none('Aucun anniversaire')}
-<h2>Rappels</h2>${upTk().slice(0,6).map(tkRow).join('')||none('Aucun rappel')}<h2>Sauvegarde</h2><div class="seg"><button onclick="exportData()">Exporter</button><button onclick="importData()">Importer</button><button onclick="logout()">Déconnexion</button></div>`}
+<h2>Rappels</h2>${upTk().slice(0,6).map(tkRow).join('')||none('Aucun rappel')}<h2>Sauvegarde</h2><div class="seg"><button onclick="exportData()">Exporter</button><button onclick="importData()">Importer</button><button onclick="logout()">Déconnexion</button></div><label class="b0" style="display:block;text-align:center;margin-top:6px">Importer un fichier<input type="file" hidden onchange="importFile(this)"></label>`}
 function agenda(){const first=new Date(calY,calM,1),start=add(iso(first),-((first.getDay()+6)%7));let h=`<div class="nav2"><button class="add" onclick="cm(-1)">‹</button>${first.toLocaleDateString('fr-FR',{month:'long',year:'numeric'})}<button class="add" onclick="cm(1)">›</button></div><div class="cal">`+['L','M','M','J','V','S','D'].map(x=>`<b>${x}</b>`).join('');
 for(let i=0;i<42;i++){const x=add(start,i),ev=S.agenda.ev.filter(e=>onDay(e,x)),bd=S.agenda.bd.some(b=>b.d.slice(4)===x.slice(4));
 h+=`<div class="d${+x.slice(5,7)-1===calM?'':' o'}${hol(x)?' h':''}${x===selDay?' s':''}${x===TODAY()?' t':''}" onclick="selDay='${x}';render()">${+x.slice(8)}<div>${ev.slice(0,3).map(e=>`<i style="background:var(--${e.w})"></i>`).join('')}${bd?'🎂':''}</div></div>`}
@@ -121,8 +125,10 @@ const cfg={apiKey:"AIzaSyCi2wrQeSf6DwIgG4CmE7b5wcaHK-yVgY8",authDomain:"hub-fami
 firebase.initializeApp(cfg);const auth=firebase.auth(),fs=firebase.firestore();let unsub=[];
 function login(){const e=$('#em').value.trim(),p=$('#pw').value;$('#err').textContent='';auth.signInWithEmailAndPassword(e,p).catch(()=>$('#err').textContent='E-mail ou mot de passe incorrect')}
 function logout(){auth.signOut()}
-auth.onAuthStateChanged(u=>{unsub.forEach(f=>f());unsub=[];$('#login').style.display=u?'none':'flex';if(!u)return;
-for(const k of['budget','agenda','savings'])unsub.push(fs.doc('app/'+k).onSnapshot(sn=>{if(sn.exists&&!busy[k]){S[k]=Object.assign(S[k],JSON.parse(JSON.stringify(sn.data())));base[k]=JSON.stringify(strip(S[k]));render()}},()=>toast('Accès refusé ou connexion perdue')))});
+auth.onAuthStateChanged(u=>{me=u?nameOf(u.email):'';render();unsub.forEach(f=>f());unsub=[];$('#login').style.display=u?'none':'flex';if(!u)return;
+for(const k of['budget','agenda','savings'])unsub.push(fs.doc('app/'+k).onSnapshot(sn=>{if(sn.exists&&!busy[k]){S[k]=Object.assign(S[k],JSON.parse(JSON.stringify(sn.data())));const fx=deepFix(S[k]);base[k]=JSON.stringify(strip(S[k]));render();if(fx)save(k)}},()=>toast('Accès refusé ou connexion perdue')))});
 function exportData(){sheet('Copie tout ce texte (sauvegarde)',[{k:'j',l:'Données',t:'text'}],{j:JSON.stringify({budget:strip(S.budget),agenda:strip(S.agenda),savings:strip(S.savings)})},()=>{})}
-function importData(){sheet('Importer des données',[{k:'j',l:'Colle ici le texte de sauvegarde',t:'text'}],{},r=>{try{const d=JSON.parse(r.j);['budget','agenda','savings'].forEach(k=>{if(d[k]){S[k]=d[k];save(k)}});toast('Données importées')}catch(e){toast('Texte invalide')}})}
+function importData(){sheet('Importer des données',[{k:'j',l:'Colle ici le texte de sauvegarde',t:'text'}],{},r=>doImport(r.j))}
+function doImport(t){try{const d=JSON.parse(String(t).trim());deepFix(d);let n=0;['budget','agenda','savings'].forEach(k=>{if(d[k]){S[k]=d[k];save(k);n++}});toast(n?'Données importées':'Rien à importer')}catch(e){toast('Texte invalide : '+e.message)}}
+function importFile(i){const f=i.files[0];if(!f)return;const r=new FileReader();r.onload=()=>doImport(r.result);r.readAsText(f);i.value=''}
 </script></body></html>
