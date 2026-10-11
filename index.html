@@ -452,14 +452,11 @@ const cl=()=>ov.remove(),q=k=>ov.querySelector(`[data-k=${k}]`);ov.onclick=ev=>{
 ov.querySelector('[data-a=x]').onclick=cl;const dl=ov.querySelector('[data-a=d]');if(dl)dl.onclick=()=>{S.trx.vir=(S.trx.vir||[]).filter(x=>x.id!==id);cl();save('trx')};
 ov.querySelector('[data-a=ok]').onclick=()=>{const v=+q('v').value,d=q('d').value,err=virOk(st.f.v,st.t.v)||(!(v>0)?'Indique un montant':'')||(!d?'Choisis une date':'');if(err){ov.querySelector('#virr').textContent=err;return}
 const r={f:st.f.v,t:st.t.v,v,d,p:q('p').value,n:q('n').value},V=S.trx.vir=S.trx.vir||[];if(id)Object.assign(old,r);else V.push({id:uid(),...r});cl();save('trx')}}
-const APP_V='11/10 · virements nourrissent le prévu';
+const APP_V='11/10 · sans décor animé';
 const SEAS={normal:'Normal',halloween:'Halloween',noel:'Noël'};
 const seasonPref=()=>{try{return localStorage.getItem('season')||'auto'}catch(e){return'auto'}};
 const seasonNow=()=>{const p=seasonPref();if(p!=='auto')return p;const m=new Date().getMonth();return m===9?'halloween':m===11?'noel':'normal'};
-function buildDeco(s){const d=$('#deco');if(!d)return;let h='';const r=(a,b)=>a+Math.random()*(b-a);
-if(s==='noel')for(let i=0;i<22;i++)h+=`<span class="flake" style="left:${r(0,100)}%;font-size:${r(10,26)}px;animation-duration:${r(9,19)}s;animation-delay:${-r(0,18)}s;--dx:${r(-50,50)}px;opacity:${r(.35,.85)}">${i%4?'❄':'❅'}</span>`;
-else if(s==='halloween'){for(let i=0;i<4;i++)h+=`<span class="bat" style="--y:${r(8,60)}vh;font-size:${r(18,32)}px;animation-duration:${r(14,26)}s;animation-delay:${-r(0,24)}s">🦇</span>`;for(let i=0;i<3;i++)h+=`<span class="gho" style="left:${r(6,86)}%;top:${r(18,80)}vh;font-size:${r(22,36)}px;opacity:${r(.18,.38)};animation-duration:${r(6,11)}s;animation-delay:${-r(0,8)}s">👻</span>`}
-d.innerHTML=h}
+function buildDeco(s){const d=$('#deco');if(d)d.innerHTML=''}
 function applySeason(){const s=seasonNow(),r=document.documentElement;if(s==='normal')r.removeAttribute('data-season');else r.setAttribute('data-season',s);buildDeco(s);
 const e=$('#tte');if(e)e.textContent=s==='halloween'?'🎃':s==='noel'?'🎄':'';const hi=document.querySelector('nav button[data-t=home] .i');if(hi)hi.textContent=s==='halloween'?'🎃':s==='noel'?'🎄':'🏠'}
 function setSeason(v){try{if(v==='auto')localStorage.removeItem('season');else localStorage.setItem('season',v)}catch(e){}applySeason();render()}
