@@ -173,7 +173,7 @@ nav{padding:5px;gap:3px}nav button{padding:5px 0 4px;gap:1px;font-size:10.5px}na
 .hi-fl{opacity:0;animation:hifl 2.4s ease-in infinite}.hi-f0{animation-delay:.1s}.hi-f1{animation-delay:.18s}.hi-f2{animation-delay:.12s}.hi-f3{animation-delay:.26s}.hi-f4{animation-delay:.2s}.hi-f5{animation-delay:.3s}@keyframes hifl{0%,16%{opacity:0;transform:translate(0,0)}20%{opacity:1}52%{opacity:0;transform:translate(2px,22px)}100%{opacity:0}}
 .hi-star{animation:hitw 1.2s ease-in-out infinite}@keyframes hitw{0%,100%{transform:scale(1)}50%{transform:scale(1.35)}}
 @media(prefers-reduced-motion:reduce){.hand *{animation:none!important}}
-header{position:relative;z-index:30}#hdeco{position:absolute;left:0;right:0;top:100%;pointer-events:none;z-index:6}
+header{position:relative;z-index:8}#hdeco{position:absolute;left:0;right:0;top:100%;pointer-events:none;z-index:6}
 .gl{animation:glb 1.2s steps(1) infinite}.gl1{animation-delay:-.6s}@keyframes glb{0%{opacity:1}50%{opacity:.28}}
 @media(prefers-reduced-motion:reduce){.gl{animation:none}}
 #hdeco2{position:absolute;left:0;right:0;top:0;pointer-events:none;z-index:6}#hdeco,#hdeco2{color:var(--webc,#f4efff)}
@@ -481,7 +481,7 @@ const cl=()=>ov.remove(),q=k=>ov.querySelector(`[data-k=${k}]`);ov.onclick=ev=>{
 ov.querySelector('[data-a=x]').onclick=cl;const dl=ov.querySelector('[data-a=d]');if(dl)dl.onclick=()=>{S.trx.vir=(S.trx.vir||[]).filter(x=>x.id!==id);cl();save('trx')};
 ov.querySelector('[data-a=ok]').onclick=()=>{const v=+q('v').value,d=q('d').value,err=virOk(st.f.v,st.t.v)||(!(v>0)?'Indique un montant':'')||(!d?'Choisis une date':'');if(err){ov.querySelector('#virr').textContent=err;return}
 const r={f:st.f.v,t:st.t.v,v,d,p:q('p').value,n:q('n').value},V=S.trx.vir=S.trx.vir||[];if(id)Object.assign(old,r);else V.push({id:uid(),...r});cl();save('trx')}}
-const APP_V='11/10 · toiles d’Halloween';
+const APP_V='11/10 · résumé corrigé';
 const SEAS={normal:'Normal',halloween:'Halloween',noel:'Noël'};
 const seasonPref=()=>{try{return localStorage.getItem('season')||'auto'}catch(e){return'auto'}};
 const seasonNow=()=>{const p=seasonPref();if(p!=='auto')return p;const m=new Date().getMonth();return m===9?'halloween':m===11?'noel':'normal'};
