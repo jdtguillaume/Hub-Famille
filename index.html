@@ -1,5 +1,5 @@
 <!DOCTYPE html><html lang="fr"><head><meta charset="utf-8">
-<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#D9CCF2"><meta name="apple-mobile-web-app-capable" content="yes"><link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#D9CCF2"><meta name="apple-mobile-web-app-capable" content="yes"><link rel="apple-touch-icon" href="icon-192.png?v=3">
 <meta name="robots" content="noindex, nofollow, noarchive"><title>Tiki's App</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <style>
@@ -47,7 +47,7 @@ h2{font-size:15px;margin:16px 0 8px;display:flex;justify-content:space-between;a
 .bell{position:relative;font-size:15px;padding:4px 8px}.bell i{display:none;position:absolute;top:-5px;right:-4px;background:#e0536b;color:#fff;border-radius:9px;font-size:10px;min-width:16px;height:16px;line-height:16px;text-align:center;font-style:normal;font-weight:700}.bell i.on{display:block}
 .cal.sl{animation:csl .28s ease}.cal.sr{animation:csr .28s ease}@keyframes csl{from{opacity:.2;transform:translateX(40px)}to{opacity:1;transform:none}}@keyframes csr{from{opacity:.2;transform:translateX(-40px)}to{opacity:1;transform:none}}@media(prefers-reduced-motion:reduce){.cal.sl,.cal.sr{animation:none}}
 </style></head><body>
-<header><img class="lg" src="icon-192.png?v=2" alt=""><b class="tt">Tiki's App</b><button class="hb bell" onclick="openInbox()" aria-label="Notifications">🔔<i id="bn"></i></button><button class="hb" onclick="go('home')">Accueil</button><button class="hb" onclick="logout()">Déconnexion</button><span class="sp"></span><button class="hb" title="Annuler" onclick="undo()">↶</button><button class="hb" title="Rétablir" onclick="redo()">↷</button></header><div id="m"></div>
+<header><img class="lg" src="icon-192.png?v=3" alt=""><b class="tt">Tiki's App</b><button class="hb bell" onclick="openInbox()" aria-label="Notifications">🔔<i id="bn"></i></button><button class="hb" onclick="go('home')">Accueil</button><button class="hb" onclick="logout()">Déconnexion</button><span class="sp"></span><button class="hb" title="Annuler" onclick="undo()">↶</button><button class="hb" title="Rétablir" onclick="redo()">↷</button></header><div id="m"></div>
 <div id="login"><div class="card" style="width:min(340px,90%)"><h3 style="margin-top:0">Tiki's App</h3><input id="em" type="email" placeholder="E-mail" autocomplete="username"><input id="pw" type="password" placeholder="Mot de passe" autocomplete="current-password"><div id="err" style="color:#c0392b;font-size:13px;min-height:18px"></div><button class="b1" style="width:100%" onclick="login()">Se connecter</button></div></div>
 <div id="wel"></div>
 <div id="story"></div>
@@ -187,13 +187,13 @@ return{title:'Bonjour '+me+', voici ta journée.',B}}
 let stOn=0,stSkip=0,stId=0;
 function closeStory(){stOn=0;const o=$('#story');o.className='';o.innerHTML=''}
 async function openStory(){if(stOn)return;stOn=1;stSkip=0;const id=++stId;const o=$('#story'),d=storyData(),wxp=getWx();o.className='on';
-o.innerHTML='<button class="x" onclick="closeStory()">✕</button><div class="trk"><div class="hw" id="hw"><span class="dust">💨</span><img class="ham" src="icon-192.png?v=2" alt=""></div></div><div class="sti" id="sti"></div><div id="sb"></div>';
+o.innerHTML='<button class="x" onclick="closeStory()">✕</button><div class="trk"><div class="hw" id="hw"><img class="ham" src="icon-192.png?v=3" alt=""></div></div><div class="sti" id="sti"></div><div id="sb"></div>';
 o.onclick=e=>{if(!e.target.closest('.x'))stSkip=1};
 const wait=ms=>new Promise((r,j)=>setTimeout(()=>stOn&&stId===id?r():j(0),stSkip||RM?0:ms));
 try{await wait(1700);$('#hw').classList.add('idle');const t=$('#sti');for(let i=1;i<=d.title.length;i++){t.textContent=d.title.slice(0,i);await wait(36)}
 const add=async h=>{const b=document.createElement('div');b.className='blk';b.innerHTML=h;$('#sb').append(b);o.scrollTo&&o.scrollTo(0,o.scrollHeight);await wait(900)};
 await add(wxHtml(await wxp));for(const b of d.B)await add(b.h)}catch(e){}}
-function welcome(){if(welcomed)return;welcomed=1;const o=$('#wel');o.innerHTML=`<img class="wl" src="icon-192.png?v=2" alt=""><div class="wt">Welcome</div><div class="wn">${esc(me)} ✨</div>`;o.className='on';sparkle();setTimeout(()=>{o.className='off'},RM?900:1800);setTimeout(()=>{o.className='';o.innerHTML='';const m=$('#m');m.classList.remove('fade');void m.offsetWidth;m.classList.add('fade')},RM?1300:2300)}
+function welcome(){if(welcomed)return;welcomed=1;const o=$('#wel');o.innerHTML=`<img class="wl" src="icon-192.png?v=3" alt=""><div class="wt">Welcome</div><div class="wn">${esc(me)} ✨</div>`;o.className='on';sparkle();setTimeout(()=>{o.className='off'},RM?900:1800);setTimeout(()=>{o.className='';o.innerHTML='';const m=$('#m');m.classList.remove('fade');void m.offsetWidth;m.classList.add('fade')},RM?1300:2300)}
 function softRender(){const a=document.activeElement;if(a&&a.closest&&a.closest('#m')&&/INPUT|TEXTAREA|SELECT/.test(a.tagName))return;render()}
 function anim(){const m=$('#m');m.classList.remove('fade');void m.offsetWidth;m.classList.add('fade');sparkle()}
 function go(t,s){const same=t===tab&&(!s||sub[t]===s);tab=t;if(s)sub[t]=s;if(!same){curL=null;curN=null}render();if(!same){$('#m').scrollTop=0;anim()}}
