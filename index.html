@@ -288,7 +288,7 @@ H.forEach(x=>(x.l||[]).forEach(o=>{const k=o.a+'|'+o.n;by[k]=(by[k]||0)+o.v}));c
 return `<div class="card"><div class="ln"><span>Mois archivés</span><span>${H.length}</span></div><div class="ln"><span>Total dépenses</span><span>${eur(tot)}</span></div><div class="ln"><span>Moyenne / mois</span><span>${eur(tot/H.length)}</span></div><div class="ln"><span>Plus dépensier</span><span>${mx.m}</span><span>${eur(T(mx))}</span></div><div class="ln"><span>Moins dépensier</span><span>${mn.m}</span><span>${eur(T(mn))}</span></div></div><div class="card"><b>Par compte (année)</b>${OW.map(([k,l])=>`<div class="ln"><span>${l}</span><span>${eur(H.reduce((s,x)=>s+(+x[k]||0),0))}</span></div>`).join('')}</div>`+(top.length?`<div class="card"><b>Top 10 des dépenses</b>${top.map(([k,v])=>{const [a,n]=k.split('|');return `<div class="ln"><span>${esc(n)} <small class="mut">${W[a]}</small></span><span>${eur(v)}</span></div>`}).join('')}</div>`:'')}
 const own=a=>a.w||(/pauline/i.test(a.n)?'p':/commun/i.test(a.n)?'c':/guillaume/i.test(a.n)?'g':'c'),savBy=w=>S.savings.acc.filter(a=>own(a)===w).reduce((t,a)=>t+bal(a),0);
 const appC=()=>dep('c','pr')+sum('c','epargne','pr'),car=w=>+((S.budget.carry||{})[w])||0;
-const soldeBase=(w,f)=>w==='c'?appC()+car('c')-dep('c',f)-sum('c','epargne',f):(+S.budget.rev[w]||0)+car(w)-appC()*shr(w)-dep(w,f)-sum(w,'epargne',f),soldeOf=(w,f)=>soldeBase(w,f)+vFund(w)+(f==='re'?vNet('a:'+w):0);
+const soldeBase=(w,f)=>w==='c'?appC()+car('c')-dep('c',f)-sum('c','epargne',f):(+S.budget.rev[w]||0)+car(w)-appC()*shr(w)-dep(w,f)-sum(w,'epargne',f),soldeOf=(w,f)=>soldeBase(w,f)+vFund(w)+vNet('a:'+w);
 const vFund=w=>(S.trx.vir||[]).filter(x=>vp(x)===S.budget.mois).reduce((s,x)=>{const fl=x.f[0]==='l',tl=x.t[0]==='l',fs=x.f[0]==='s',ts=x.t[0]==='s';if(tl&&fs){const l=LN(x.t.slice(2));return s+(l&&l.a===w?+x.v||0:0)}if(fl&&ts){const l=LN(x.f.slice(2));return s-(l&&l.a===w?+x.v||0:0)}return s},0);
 function carryForm(w){sheet('Solde de départ · '+W[w],[{k:'v',l:'Montant (€) — reste du mois précédent',t:'number'}],{v:car(w)},r=>{S.budget.carry={...(S.budget.carry||{}),[w]:r.v};save('budget')})}
 const svOf=l=>l.sv||(S.savings.acc.find(a=>own(a)===l.a)||{}).id;
@@ -436,7 +436,7 @@ const epLab=id=>{const t=id[0],k=id.slice(2);if(t==='a')return'Compte · '+W[k];
 function virGo(n){virM=addM((virM||S.budget.mois)+'-01',n).slice(0,7);render()}
 function virements(){const m=virM||S.budget.mois,V=(S.trx.vir||[]).filter(x=>vp(x)===m).sort((a,b)=>b.d.localeCompare(a.d));
 return subbar('fin')+`<div class="nav2"><button class="add" onclick="virGo(-1)">‹</button>${dt(m+'-01').toLocaleDateString('fr-FR',{month:'long',year:'numeric'})}<button class="add" onclick="virGo(1)">›</button></div>
-<h2>Soldes après virements</h2><div class="card"><div class="mut" style="margin-bottom:4px">Reste réel du mois de chaque compte, puis soldes d’épargne.</div>${['g','p','c'].map(w=>`<div class="ln w"><span>${chip(w)}</span><span>${eur(soldeOf(w,'re'))}</span></div>`).join('')}${S.savings.acc.map(a=>`<div class="ln w"><span>🏦 ${esc(a.n)}</span><span>${eur(bal(a))}</span></div>`).join('')}</div>
+<h2>Soldes après virements</h2><div class="card"><div class="ln w mut"><span>Reste du mois</span><span>Prévu</span><span>Réel</span></div>${['g','p','c'].map(w=>`<div class="ln w"><span>${chip(w)}</span><span>${eur(soldeOf(w,'pr'))}</span><span>${eur(soldeOf(w,'re'))}</span></div>`).join('')}<div class="ln w mut"><span>Soldes d’épargne</span></div>${S.savings.acc.map(a=>`<div class="ln w"><span>🏦 ${esc(a.n)}</span><span>${eur(bal(a))}</span></div>`).join('')}</div>
 <h2>Virements<button class="add" onclick="virForm()">+ Virement</button></h2>`+(V.map(x=>`<div class="row" onclick="virForm('${x.id}')"><div class="t">${esc(epLab(x.f))} → ${esc(epLab(x.t))}<br><small>${fd(x.d)}${x.n?' · '+esc(x.n):''}</small></div><b>${eur(x.v)}</b></div>`).join('')||none('Aucun virement sur cette période'))}
 const epOwner=id=>{const t=id[0],k=id.slice(2);if(t==='a')return k;if(t==='s'){const a=S.savings.acc.find(x=>x.id===k);return a?own(a):'c'}const l=LN(k);return l?l.a:'c'};
 function virOk(f,t){if(!f||!t)return'Choisis les deux côtés du virement';if(f===t)return'Choisis deux éléments différents';const a=f[0],b=t[0],m=x=>x==='a'||x==='s';
@@ -452,7 +452,7 @@ const cl=()=>ov.remove(),q=k=>ov.querySelector(`[data-k=${k}]`);ov.onclick=ev=>{
 ov.querySelector('[data-a=x]').onclick=cl;const dl=ov.querySelector('[data-a=d]');if(dl)dl.onclick=()=>{S.trx.vir=(S.trx.vir||[]).filter(x=>x.id!==id);cl();save('trx')};
 ov.querySelector('[data-a=ok]').onclick=()=>{const v=+q('v').value,d=q('d').value,err=virOk(st.f.v,st.t.v)||(!(v>0)?'Indique un montant':'')||(!d?'Choisis une date':'');if(err){ov.querySelector('#virr').textContent=err;return}
 const r={f:st.f.v,t:st.t.v,v,d,p:q('p').value,n:q('n').value},V=S.trx.vir=S.trx.vir||[];if(id)Object.assign(old,r);else V.push({id:uid(),...r});cl();save('trx')}}
-const APP_V='11/10 · virements épargne → budget';
+const APP_V='11/10 · virements nourrissent le prévu';
 const SEAS={normal:'Normal',halloween:'Halloween',noel:'Noël'};
 const seasonPref=()=>{try{return localStorage.getItem('season')||'auto'}catch(e){return'auto'}};
 const seasonNow=()=>{const p=seasonPref();if(p!=='auto')return p;const m=new Date().getMonth();return m===9?'halloween':m===11?'noel':'normal'};
