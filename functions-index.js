@@ -56,11 +56,14 @@ for(const w of['g','p'])await push(await tokensFor(w),{title:'Bonjour '+NAMES[w]
 exports.eventReminders=onSchedule({schedule:'every 5 minutes',timeZone:TZ,region:REGION,timeoutSeconds:300},async()=>{
 const p=paris(now()),T=p.date,nowMin=dayNum(T)*1440+p.h*60+p.m,snap=await db.doc('app/agenda').get();if(!snap.exists)return
 const ag=snap.data(),stRef=db.doc('notif/state'),st=await stRef.get(),sent=new Set((st.exists&&st.data().sent)||[]),fresh=[];
+const due={g:[],p:[]};
 for(const e of(ag.ev||[])){if(!e.s||!e.d||(e.d!==T&&e.d!==add(T,1)))continue;const[hh,mm]=e.s.split(':').map(Number),diff=dayNum(e.d)*1440+hh*60+mm-nowMin,key=e.id+'|'+e.d;
 if(diff<=0||diff>60||sent.has(key))continue;
-const who=e.w==='c'?['g','p']:[e.w];for(const w of who){const k2=key+'|'+w;if(sent.has(k2))continue;
-const r=await push(await tokensFor(w),{title:e.s+' · '+e.t,body:(diff>=45?'Dans environ 1 h':'Dans '+diff+' min')+(e.w==='c'?' · Commun':''),tag:'evt-'+key},w);
-if(!r||r.n===0||r.ok>0)fresh.push(k2);else console.log('rappel non livré, nouvel essai au prochain passage :',e.t,'pour',w)}}
+const who=e.w==='c'?['g','p']:[e.w];for(const w of who){const k2=key+'|'+w;if(due[w]&&!sent.has(k2))due[w].push({e,diff,k2})}}
+for(const w of['g','p']){const L=due[w];if(!L.length)continue;L.sort((a,b)=>a.diff-b.diff);
+const one=L.length===1,m=L[0],title=one?m.e.s+' · '+m.e.t:L.length+' événements dans environ 1 h',body=one?(m.diff>=45?'Dans environ 1 h':'Dans '+m.diff+' min')+(m.e.w==='c'?' · Commun':''):L.map(x=>x.e.s+' '+x.e.t+(x.e.w==='c'?' · Commun':'')).join('\n');
+const r=await push(await tokensFor(w),{title,body,tag:'evt-'+L.map(x=>x.k2).join(',').slice(0,120)},w);
+if(!r||r.n===0||r.ok>0)L.forEach(x=>fresh.push(x.k2));else console.log('rappel non livré, nouvel essai au prochain passage pour',w)}
 if(fresh.length)await stRef.set({sent:[...sent,...fresh].slice(-300)});
 try{await syncGcal(ag)}catch(err){console.error('Google Agenda :',err.message)}});
 if(process.env.FAKE_NOW)exports._t={buildSummary,nextTk,paris,ferie,gBody,hexId,syncGcal};
