@@ -21,7 +21,7 @@ const ev=(ag.ev||[]).filter(e=>e.d<=T&&T<=(e.e&&e.e>=e.d?e.e:e.d)&&(e.w===w||e.w
 ev.filter(e=>!e.s).forEach(e=>L.push('📌 '+e.t+' (journée entière)'));
 ev.filter(e=>e.s).sort((a,b)=>a.s.localeCompare(b.s)).forEach(e=>L.push('🕒 '+e.s+' '+e.t));
 (ag.tk||[]).filter(t=>!t.x&&(t.w===w||t.w==='c')).forEach(t=>{const n=nextTk(t,T);if(n&&n<=T)L.push('✅ '+t.t+(n<T?' (en retard)':''))});
-(ag.bd||[]).filter(b=>b.d&&b.d.slice(5)===T.slice(5)).forEach(b=>L.push('🎂 '+b.n));
+(ag.bd||[]).filter(b=>b.d&&b.d.slice(5)===T.slice(5)&&(!b.w||b.w==='c'||b.w===w)).forEach(b=>L.push('🎂 '+b.n));
 const ml=(ag.ml||{})[T];if(ml&&(ml.m||ml.s))L.push('🍽️ Midi : '+(ml.m||'—')+' · Soir : '+(ml.s||'—'));
 return L.length?L.join('\n'):'Rien de prévu aujourd’hui.'}
 async function tokensFor(w){const s=await db.collection('tokens').get(),out=[];s.forEach(d=>{const v=d.data();if(v.w===w)(v.tokens||[]).forEach(t=>out.push({t,ref:d.ref}))});return out}
