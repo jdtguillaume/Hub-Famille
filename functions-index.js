@@ -24,6 +24,8 @@ ev.filter(e=>e.s).sort((a,b)=>a.s.localeCompare(b.s)).forEach(e=>L.push('🕒 '+
 (ag.bd||[]).filter(b=>b.d&&b.d.slice(5)===T.slice(5)&&(!b.w||b.w==='c'||b.w===w)).forEach(b=>L.push('🎂 '+b.n));
 const ml=(ag.ml||{})[T];if(ml&&(ml.m||ml.s))L.push('🍽️ Midi : '+(ml.m||'—')+' · Soir : '+(ml.s||'—'));
 return L.length?L.join('\n'):'Rien de prévu aujourd’hui.'}
+async function docsFor(w){const s=await db.collection('tokens').get(),out=[];s.forEach(d=>{const v=d.data();if(v.w===w)out.push({uid:d.id,tokens:(v.tokens||[]).map(t=>({t,ref:d.ref}))})});return out}
+async function privEv(uid){try{const d=await db.doc('private/'+uid).get();return(d.exists&&d.data().ev)||[]}catch(e){console.error('événements privés',uid,e.message);return[]}}
 async function tokensFor(w){const s=await db.collection('tokens').get(),out=[];s.forEach(d=>{const v=d.data();if(v.w===w)(v.tokens||[]).forEach(t=>out.push({t,ref:d.ref}))});return out}
 async function push(list,data,label){if(!list.length){console.log('push: aucun appareil pour',label,'|',data.title);return{n:0,ok:0}}
 const res=await getMessaging().sendEachForMulticast({tokens:list.map(x=>x.t),data,webpush:{headers:{Urgency:'high',TTL:'3600'}}});
@@ -52,7 +54,8 @@ for(const[e,h]of todo){if(n++>=40)break;const gid=hexId(e.id),body={...gBody(e),
 await stRef.set({m:nm})}
 exports.dailySummary=onSchedule({schedule:'0 7 * * *',timeZone:TZ,region:REGION},async()=>{
 const T=paris(now()).date,snap=await db.doc('app/agenda').get(),ag=snap.exists?snap.data():{};
-for(const w of['g','p'])await push(await tokensFor(w),{title:'Bonjour '+NAMES[w]+' — aujourd’hui',body:buildSummary(w,ag,T),tag:'resume-'+T},w)});
+for(const w of['g','p']){const docs=await docsFor(w);if(!docs.length){console.log('push: aucun appareil pour',w);continue}
+for(const d of docs){const ag2={...ag,ev:(ag.ev||[]).concat(await privEv(d.uid))};await push(d.tokens,{title:'Bonjour '+NAMES[w]+' — aujourd’hui',body:buildSummary(w,ag2,T),tag:'resume-'+T},w)}}});
 exports.eventReminders=onSchedule({schedule:'every 5 minutes',timeZone:TZ,region:REGION,timeoutSeconds:300},async()=>{
 const p=paris(now()),T=p.date,nowMin=dayNum(T)*1440+p.h*60+p.m,snap=await db.doc('app/agenda').get();if(!snap.exists)return
 const ag=snap.data(),stRef=db.doc('notif/state'),st=await stRef.get(),sent=new Set((st.exists&&st.data().sent)||[]),fresh=[];
@@ -60,10 +63,13 @@ const due={g:[],p:[]};
 for(const e of(ag.ev||[])){if(!e.s||!e.d||(e.d!==T&&e.d!==add(T,1)))continue;const[hh,mm]=e.s.split(':').map(Number),diff=dayNum(e.d)*1440+hh*60+mm-nowMin,key=e.id+'|'+e.d;
 if(diff<=0||diff>60||sent.has(key))continue;
 const who=e.w==='c'?['g','p']:[e.w];for(const w of who){const k2=key+'|'+w;if(due[w]&&!sent.has(k2))due[w].push({e,diff,k2})}}
-for(const w of['g','p']){const L=due[w];if(!L.length)continue;L.sort((a,b)=>a.diff-b.diff);
+for(const w of['g','p']){const L0=due[w].sort((a,b)=>a.diff-b.diff),docs=await docsFor(w);let anyOk=!docs.length;
+for(const d of docs){const pv=[];for(const e of await privEv(d.uid)){if(!e.s||!e.d||(e.d!==T&&e.d!==add(T,1)))continue;const[hh,mm]=e.s.split(':').map(Number),diff=dayNum(e.d)*1440+hh*60+mm-nowMin,k2='pv|'+d.uid+'|'+e.id+'|'+e.d;if(diff<=0||diff>60||sent.has(k2))continue;pv.push({e,diff,k2})}
+const L=[...L0,...pv].sort((a,b)=>a.diff-b.diff);if(!L.length)continue;
 const one=L.length===1,m=L[0],title=one?m.e.s+' · '+m.e.t:L.length+' événements dans environ 1 h',body=one?(m.diff>=45?'Dans environ 1 h':'Dans '+m.diff+' min')+(m.e.w==='c'?' · Commun':''):L.map(x=>x.e.s+' '+x.e.t+(x.e.w==='c'?' · Commun':'')).join('\n');
-const r=await push(await tokensFor(w),{title,body,tag:'evt-'+L.map(x=>x.k2).join(',').slice(0,120)},w);
-if(!r||r.n===0||r.ok>0)L.forEach(x=>fresh.push(x.k2));else console.log('rappel non livré, nouvel essai au prochain passage pour',w)}
+const r=await push(d.tokens,{title,body,tag:'evt-'+L.map(x=>x.k2).join(',').slice(0,120)},w);
+if(r.n===0||r.ok>0){pv.forEach(x=>fresh.push(x.k2));anyOk=true}else console.log('rappel non livré, nouvel essai au prochain passage pour',w)}
+if(L0.length&&anyOk)L0.forEach(x=>fresh.push(x.k2))}
 if(fresh.length)await stRef.set({sent:[...sent,...fresh].slice(-300)});
 try{await syncGcal(ag)}catch(err){console.error('Google Agenda :',err.message)}});
 if(process.env.FAKE_NOW)exports._t={buildSummary,nextTk,paris,ferie,gBody,hexId,syncGcal};
