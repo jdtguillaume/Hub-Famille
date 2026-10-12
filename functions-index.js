@@ -21,7 +21,7 @@ const ev=(ag.ev||[]).filter(e=>e.d<=T&&T<=(e.e&&e.e>=e.d?e.e:e.d)&&(e.w===w||e.w
 ev.filter(e=>!e.s).forEach(e=>L.push('📌 '+e.t+' (journée entière)'));
 ev.filter(e=>e.s).sort((a,b)=>a.s.localeCompare(b.s)).forEach(e=>L.push('🕒 '+e.s+' '+e.t));
 (ag.tk||[]).filter(t=>!t.x&&(t.w===w||t.w==='c')).forEach(t=>{const n=nextTk(t,T);if(n&&n<=T)L.push('✅ '+t.t+(n<T?' (en retard)':''))});
-(ag.bd||[]).filter(b=>b.d&&b.d.slice(5)===T.slice(5)&&(!b.w||b.w==='c'||b.w===w)).forEach(b=>L.push('🎂 '+b.n));
+(ag.bd||[]).filter(b=>b.d&&b.d.slice(5)===T.slice(5)).forEach(b=>L.push('🎂 '+b.n));
 const ml=(ag.ml||{})[T];if(ml&&(ml.m||ml.s))L.push('🍽️ Midi : '+(ml.m||'—')+' · Soir : '+(ml.s||'—'));
 return L.length?L.join('\n'):'Rien de prévu aujourd’hui.'}
 async function docsFor(w){const s=await db.collection('tokens').get(),out=[];s.forEach(d=>{const v=d.data();if(v.w===w)out.push({uid:d.id,tokens:(v.tokens||[]).map(t=>({t,ref:d.ref}))})});return out}
@@ -47,11 +47,15 @@ if(!r.ok)throw new Error('Jeton Google refusé ('+r.status+') : '+await r.text()
 function gBodyTk(t,T){const who=NAMES[t.w]||'Commun',rec={w:'WEEKLY',m:'MONTHLY',y:'YEARLY'}[t.r],late=!rec&&t.d<T,d=late?T:t.d;
 const b={summary:'✅ '+t.t+' ('+who+')',description:'Rappel ajouté depuis Tiki’s App · pour : '+who+(late?' · en retard depuis le '+t.d:''),colorId:'5',status:'confirmed',transparency:'transparent',reminders:{useDefault:true},extendedProperties:{private:{tiki:'1',tikiKind:'rappel'}},start:{date:d},end:{date:add(d,1)}};
 if(rec)b.recurrence=['RRULE:FREQ='+rec];return b}
+const leap=y=>y%4===0&&(y%100!==0||y%400===0);
+function gBodyBd(b,T){const y=+T.slice(0,4);let md=b.d.slice(5);if(md==='02-29'&&!leap(y))md='02-28';const d=y+'-'+md,by=+b.d.slice(0,4);
+return{summary:'🎂 Anniversaire de '+b.n,description:'Anniversaire ajouté depuis Tiki’s App · liste : '+(NAMES[b.w]||'Commun')+(by>1900?' · né(e) en '+by:''),colorId:'6',status:'confirmed',transparency:'transparent',reminders:{useDefault:true},extendedProperties:{private:{tiki:'1',tikiKind:'anniversaire'}},start:{date:d},end:{date:add(d,1)},recurrence:['RRULE:FREQ=YEARLY']}}
 async function syncGcal(ag){const cal=CAL.value();if(!cal)return;
-const T=paris(now()).date,stRef=db.doc('notif/gcal'),st=await stRef.get(),m=(st.exists&&st.data().m)||{},evs=ag.ev||[],tks=(ag.tk||[]).filter(t=>t.id&&t.t&&t.d&&!t.x),all=new Set([...evs.map(e=>e.id),...tks.map(t=>'tk:'+t.id)]),cut=add(T,-30),todo=[],del=Object.keys(m).filter(id=>!all.has(id));
+const T=paris(now()).date,stRef=db.doc('notif/gcal'),st=await stRef.get(),m=(st.exists&&st.data().m)||{},evs=ag.ev||[],tks=(ag.tk||[]).filter(t=>t.id&&t.t&&t.d&&!t.x),bds=(ag.bd||[]).filter(b=>b.id&&b.n&&b.d),all=new Set([...evs.map(e=>e.id),...tks.map(t=>'tk:'+t.id),...bds.map(b=>'bd:'+b.id)]),cut=add(T,-30),todo=[],del=Object.keys(m).filter(id=>!all.has(id));
 const hash=b=>crypto.createHash('md5').update(JSON.stringify(b)).digest('hex');
 for(const e of evs){if(!e.d||!e.t)continue;if(endOf(e)<cut&&!m[e.id])continue;const b=gBody(e),h=hash(b);if(m[e.id]!==h)todo.push([e.id,b,h])}
 for(const t of tks){const k='tk:'+t.id,b=gBodyTk(t,T),h=hash(b);if(m[k]!==h)todo.push([k,b,h])}
+for(const x of bds){const k='bd:'+x.id,b=gBodyBd(x,T),h=hash(b);if(m[k]!==h)todo.push([k,b,h])}
 if(!todo.length&&!del.length)return;
 const{token}=await gToken(),base='https://www.googleapis.com/calendar/v3/calendars/'+encodeURIComponent(cal)+'/events',H={Authorization:'Bearer '+token,'Content-Type':'application/json'},nm={...m};let n=0;
 for(const id of del){const r=await fetch(base+'/'+hexId(id),{method:'DELETE',headers:H});if(r.ok||r.status===404||r.status===410)delete nm[id];else console.error('gcal suppression',id,r.status)}
@@ -78,4 +82,4 @@ if(r.n===0||r.ok>0){pv.forEach(x=>fresh.push(x.k2));anyOk=true}else console.log(
 if(L0.length&&anyOk)L0.forEach(x=>fresh.push(x.k2))}
 if(fresh.length)await stRef.set({sent:[...sent,...fresh].slice(-300)});
 try{await syncGcal(ag)}catch(err){console.error('Google Agenda :',err.message)}});
-if(process.env.FAKE_NOW)exports._t={buildSummary,nextTk,paris,ferie,gBody,gBodyTk,hexId,syncGcal};
+if(process.env.FAKE_NOW)exports._t={buildSummary,nextTk,paris,ferie,gBody,gBodyTk,gBodyBd,hexId,syncGcal};

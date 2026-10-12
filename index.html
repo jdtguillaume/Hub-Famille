@@ -179,6 +179,7 @@ header{position:relative;z-index:8}#hdeco{position:absolute;left:0;right:0;top:1
 .hp{animation:hpb 2.4s steps(1) infinite}.hp1{animation-delay:-1.2s}@keyframes hpb{0%{opacity:1}50%{opacity:.4}}
 @media(prefers-reduced-motion:reduce){.hp{animation:none}}
 :root[data-season=noel] header,:root[data-season=halloween] header{margin-bottom:12px}
+.sh label.chk{display:flex;align-items:center;gap:12px;margin-top:16px;padding:12px;border:1px solid var(--bd);border-radius:14px;background:var(--glass);font-size:15px;color:var(--tx)}.sh label.chk input{width:24px;height:24px;flex:none;margin:0;padding:0;accent-color:var(--a1)}.sh label.chk span{display:block}.sh label.chk small{display:block;font-size:12px;color:var(--mut);margin-top:2px}
 </style></head><body><div id="deco"></div>
 <header><div id="hdeco"></div><button class="lgb" onclick="go('home')" aria-label="Accueil"><img class="lg" src="icon-192.png?v=3" alt=""></button><b class="tt">Tiki's App</b><span id="tte"></span><button class="hb bell" onclick="openInbox()" aria-label="Notifications">🔔<i id="bn"></i></button><button class="hb" onclick="logout()" aria-label="Déconnexion"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg></button><span class="sp"></span><button class="hb" onclick="undo()" aria-label="Annuler">↶</button><button class="hb" onclick="redo()" aria-label="Rétablir">↷</button></header><div id="subnav" style="display:none"></div><div id="m"></div>
 <div id="login"><div class="card" style="width:min(340px,90%)"><h3 style="margin-top:0">Tiki's App</h3><input id="em" type="email" placeholder="E-mail" autocomplete="username"><input id="pw" type="password" placeholder="Mot de passe" autocomplete="current-password"><div id="err" style="color:#c0392b;font-size:13px;min-height:18px"></div><button class="b1" style="width:100%" onclick="login()">Se connecter</button></div></div>
@@ -218,19 +219,19 @@ const n=t.r==='m'?1:12,k=Math.floor(((+T.slice(0,4)-+t.d.slice(0,4))*12+(+T.slic
 function nextBd(b){const T=TODAY(),y=+T.slice(0,4);let r=y+b.d.slice(4);if(r<T)r=(y+1)+b.d.slice(4);return r}
 const chip=w=>`<span class="chip" style="background:var(--${w})">${W[w]}</span>`;
 function sheet(title,F,V,ok,del){const o=document.createElement('div');o.className='ov';
-o.innerHTML=`<div class="sh"><h3>${esc(title)}</h3>${F.map(f=>`<label>${f.l}${f.t==='select'?`<select data-k="${f.k}">${f.o.map(([v,l])=>`<option value="${v}"${V[f.k]==v?' selected':''}>${l}</option>`).join('')}</select>`:`<input data-k="${f.k}" type="${f.t}"${f.t==='number'?' step="0.01" inputmode="decimal"':''} value="${esc(V[f.k]??'')}">`}</label>`).join('')}<div class="bt"><button class="b0">Annuler</button>${del?'<button class="bd">Supprimer</button>':''}<button class="b1">Valider</button></div></div>`;
+o.innerHTML=`<div class="sh"><h3>${esc(title)}</h3>${F.map(f=>f.t==='check'?`<label class="chk"><input data-k="${f.k}" type="checkbox"${V[f.k]?' checked':''}><span>${f.l}${f.h?`<small>${f.h}</small>`:''}</span></label>`:`<label>${f.l}${f.t==='select'?`<select data-k="${f.k}">${f.o.map(([v,l])=>`<option value="${v}"${V[f.k]==v?' selected':''}>${l}</option>`).join('')}</select>`:`<input data-k="${f.k}" type="${f.t}"${f.t==='number'?' step="0.01" inputmode="decimal"':''} value="${esc(V[f.k]??'')}">`}</label>`).join('')}<div class="bt"><button class="b0">Annuler</button>${del?'<button class="bd">Supprimer</button>':''}<button class="b1">Valider</button></div></div>`;
 document.body.append(o);const cl=()=>o.remove();o.onclick=e=>{if(e.target===o)cl()};o.querySelector('.b0').onclick=cl;
 if(del)o.querySelector('.bd').onclick=()=>{del();cl()};
-o.querySelector('.b1').onclick=()=>{const r={};o.querySelectorAll('[data-k]').forEach(i=>r[i.dataset.k]=i.type==='number'?(i.value===''?0:+i.value):i.value);ok(r);cl()}}
-function evForm(id,day){const old=EV().find(x=>x.id===id),wasPv=old?isPv(old):false,e=old?{...old,pv:wasPv?'1':'0'}:{w:'c',d:day||TODAY(),pv:'0'};
-sheet(id?'Modifier l’événement':'Nouvel événement',[{k:'t',l:'Événement',t:'text'},{k:'pv',l:'Qui peut le voir (privé : ni l’autre, ni Google, ni Alexa)',t:'select',o:[['0','Tout le monde'],['1','🔒 Moi seulement']]},{k:'w',l:'Pour (ignoré si privé)',t:'select',o:OW},{k:'d',l:'Date de début',t:'date'},{k:'s',l:'Heure de début (vide = toute la journée)',t:'time'},{k:'e',l:'Date de fin (si plusieurs jours)',t:'date'},{k:'f',l:'Heure de fin',t:'time'}],e,r=>{if(!r.t||!r.d)return;const pv=r.pv==='1',x={...r};delete x.pv;if(pv)x.w=myK()||'g';
+o.querySelector('.b1').onclick=()=>{const r={};o.querySelectorAll('[data-k]').forEach(i=>r[i.dataset.k]=i.type==='checkbox'?i.checked:i.type==='number'?(i.value===''?0:+i.value):i.value);ok(r);cl()}}
+function evForm(id,day){const old=EV().find(x=>x.id===id),wasPv=old?isPv(old):false,e=old?{...old,pv:wasPv}:{w:'c',d:day||TODAY(),pv:false};
+sheet(id?'Modifier l’événement':'Nouvel événement',[{k:'t',l:'Événement',t:'text'},{k:'w',l:'Pour (ignoré si privé)',t:'select',o:OW},{k:'d',l:'Date de début',t:'date'},{k:'s',l:'Heure de début (vide = toute la journée)',t:'time'},{k:'e',l:'Date de fin (si plusieurs jours)',t:'date'},{k:'f',l:'Heure de fin',t:'time'},{k:'pv',t:'check',l:'Visibilité : privé 🔒',h:'Visible par toi seul : ni l’autre, ni Google, ni Alexa'}],e,r=>{if(!r.t||!r.d)return;const pv=!!r.pv,x={...r};delete x.pv;if(pv)x.w=myK()||'g';
 if(old){if(wasPv===pv){Object.assign(old,x);save(pv?'priv':'agenda')}else{if(wasPv)S.priv.ev=EVP().filter(y=>y.id!==id);else S.agenda.ev=S.agenda.ev.filter(y=>y.id!==id);(pv?EVP():S.agenda.ev).push({...old,...x});save(wasPv?'priv':'agenda');save(pv?'priv':'agenda')}}
 else{(pv?EVP():S.agenda.ev).push({id:uid(),...x});save(pv?'priv':'agenda')}},
 id&&(()=>{if(wasPv){S.priv.ev=EVP().filter(y=>y.id!==id);save('priv')}else{S.agenda.ev=S.agenda.ev.filter(y=>y.id!==id);save('agenda')}}))}
 function bdForm(id){const e=S.agenda.bd.find(x=>x.id===id)||{w:'c'};
 sheet(id?'Modifier':'Nouvel anniversaire',[{k:'n',l:'Nom',t:'text'},{k:'w',l:'Dans la liste de',t:'select',o:OW},{k:'d',l:'Date de naissance (année inconnue : 1900)',t:'date'}],e,r=>{if(!r.n||!r.d)return;if(id)Object.assign(e,r);else S.agenda.bd.push({id:uid(),...r});save('agenda')},id&&(()=>{S.agenda.bd=S.agenda.bd.filter(x=>x.id!==id);save('agenda')}))}
-function tkForm(id){const old=TK().find(x=>x.id===id),wasPv=old?isPvT(old):false,e=old?{...old,pv:wasPv?'1':'0'}:{w:'c',r:'0',p:'n',pv:'0'};
-sheet(id?'Modifier le rappel':'Nouveau rappel',[{k:'t',l:'Tâche',t:'text'},{k:'pv',l:'Qui peut le voir (privé : ni l’autre, ni Google, ni Alexa)',t:'select',o:[['0','Tout le monde'],['1','🔒 Moi seulement']]},{k:'w',l:'Pour (ignoré si privé)',t:'select',o:OW},{k:'d',l:'Échéance (première date)',t:'date'},{k:'r',l:'Répétition',t:'select',o:[['0','Une seule fois'],['w','Chaque semaine'],['m','Chaque mois'],['y','Chaque année']]},{k:'p',l:'Priorité',t:'select',o:[['h','Haute'],['n','Normale'],['b','Basse']]}],e,r=>{if(!r.t)return;const pv=r.pv==='1',x={...r};delete x.pv;if(pv)x.w=myK()||'g';
+function tkForm(id){const old=TK().find(x=>x.id===id),wasPv=old?isPvT(old):false,e=old?{...old,pv:wasPv}:{w:'c',r:'0',p:'n',pv:false};
+sheet(id?'Modifier le rappel':'Nouveau rappel',[{k:'t',l:'Tâche',t:'text'},{k:'w',l:'Pour (ignoré si privé)',t:'select',o:OW},{k:'d',l:'Échéance (première date)',t:'date'},{k:'r',l:'Répétition',t:'select',o:[['0','Une seule fois'],['w','Chaque semaine'],['m','Chaque mois'],['y','Chaque année']]},{k:'p',l:'Priorité',t:'select',o:[['h','Haute'],['n','Normale'],['b','Basse']]},{k:'pv',t:'check',l:'Visibilité : privé 🔒',h:'Visible par toi seul : ni l’autre, ni Google, ni Alexa'}],e,r=>{if(!r.t)return;const pv=!!r.pv,x={...r};delete x.pv;if(pv)x.w=myK()||'g';
 if(old){if(wasPv===pv){Object.assign(old,x);save(pv?'priv':'agenda')}else{if(wasPv)S.priv.tk=TKP().filter(y=>y.id!==id);else S.agenda.tk=S.agenda.tk.filter(y=>y.id!==id);(pv?TKP():S.agenda.tk).push({...old,...x});save(wasPv?'priv':'agenda');save(pv?'priv':'agenda')}}
 else{(pv?TKP():S.agenda.tk).push({id:uid(),...x});save(pv?'priv':'agenda')}},
 id&&(()=>{if(wasPv){S.priv.tk=TKP().filter(y=>y.id!==id);save('priv')}else{S.agenda.tk=S.agenda.tk.filter(y=>y.id!==id);save('agenda')}}))}
@@ -245,7 +246,7 @@ const RP={0:'',w:'Chaque semaine',m:'Chaque mois',y:'Chaque année'};
 const tkRow=t=>{const n=nextTk(t),late=n&&n<TODAY();return `<div class="row ${t.w}" onclick="tkForm('${t.id}')"><div class="t">${isPvT(t)?'🔒 ':''}${esc(t.t)}<br><small>${n?(late?'<span class="late">'+fd(n)+'</span>':fd(n)):'Sans date'}${t.r&&t.r!=='0'?' · ↻ '+RP[t.r]:''} · ${{h:'Haute',n:'Normale',b:'Basse'}[t.p]}</small></div>${chip(t.w)}<button class="add" onclick="event.stopPropagation();doneTk('${t.id}')">✓</button></div>`};
 function setTkDone(id,v){const t=TK().find(x=>x.id===id);if(!t)return;t.x=v;save(isPvT(t)?'priv':'agenda')}
 function doneTk(id){setTkDone(id,1)}
-const myK=()=>me==='Guillaume'?'g':me==='Pauline'?'p':'',bdVis=b=>!b.w||b.w==='c'||b.w===myK(),BD=()=>S.agenda.bd.filter(bdVis);
+const myK=()=>me==='Guillaume'?'g':me==='Pauline'?'p':'',bdVis=b=>true,BD=()=>S.agenda.bd.filter(bdVis);
 const TKP=()=>S.priv.tk||(S.priv.tk=[]),TK=()=>S.agenda.tk.concat(S.priv.tk||[]),isPvT=t=>!!(S.priv.tk&&S.priv.tk.includes(t));
 const EVP=()=>S.priv.ev||(S.priv.ev=[]),EV=()=>S.agenda.ev.concat(S.priv.ev||[]),isPv=e=>!!(S.priv.ev&&S.priv.ev.includes(e));
 const upEv=()=>EV().filter(e=>endOf(e)>=TODAY()).sort(evSort),upBd=()=>BD().sort((a,b)=>nextBd(a).localeCompare(nextBd(b))),upTk=()=>TK().filter(t=>!t.x).sort((a,b)=>(nextTk(a)||'9').localeCompare(nextTk(b)||'9'));
@@ -400,8 +401,8 @@ function openIt(kind,id){const f=findIt(kind,id);if(!f)return;const it=f.it,ck=k
 if(it.lock){sheet('Ancien mot de passe : saisis-le une dernière fois pour le retirer',[{k:'pw',l:'Mot de passe',t:'password'}],{},r=>{unseal(r.pw,it.lock).then(c=>{it[ck]=c[ck];delete it.lock;save(f.st);if(kind==='nt')curN=id;else curL=id;render()}).catch(()=>toast('Mot de passe incorrect'))});return}
 if(kind==='nt')curN=id;else curL=id;render()}
 function itForm(kind,id){const f=id?findIt(kind,id):null,it=f?f.it:{},ck=kind==='nt'?'b':'it';
-sheet(id?'Réglages':(kind==='nt'?'Nouvelle note':'Nouvelle liste'),[{k:'n',l:'Titre',t:'text'},{k:'v',l:'Visibilité',t:'select',o:[['agenda','Partagé (vous deux)'],['priv','Privé (visible seulement par moi)']]}],{n:it.n||'',v:f?f.st:'agenda'},r=>{
-if(!r.n)return;const item=id?it:{id:uid(),[ck]:kind==='nt'?'':[]};item.n=r.n;const st0=id?f.st:null,st1=r.v;
+sheet(id?'Réglages':(kind==='nt'?'Nouvelle note':'Nouvelle liste'),[{k:'n',l:'Titre',t:'text'},{k:'v',t:'check',l:'Visibilité : privé 🔒',h:'Visible par toi seul'}],{n:it.n||'',v:f?f.st==='priv':false},r=>{
+if(!r.n)return;const item=id?it:{id:uid(),[ck]:kind==='nt'?'':[]};item.n=r.n;const st0=id?f.st:null,st1=r.v?'priv':'agenda';
 if(st0&&st0!==st1)S[st0][kind]=coll(kind,st0).filter(x=>x.id!==item.id);
 const arr=coll(kind,st1);if(!arr.includes(item))arr.push(item);if(!id){if(kind==='nt')curN=item.id;else curL=item.id}
 save(st1);if(st0&&st0!==st1)save(st0)},id&&(()=>{S[f.st][kind]=coll(kind,f.st).filter(x=>x.id!==id);if(kind==='nt')curN=null;else curL=null;save(f.st)}))}
@@ -500,7 +501,7 @@ const cl=()=>ov.remove(),q=k=>ov.querySelector(`[data-k=${k}]`);ov.onclick=ev=>{
 ov.querySelector('[data-a=x]').onclick=cl;const dl=ov.querySelector('[data-a=d]');if(dl)dl.onclick=()=>{S.trx.vir=(S.trx.vir||[]).filter(x=>x.id!==id);cl();save('trx')};
 ov.querySelector('[data-a=ok]').onclick=()=>{const v=+q('v').value,d=q('d').value,err=virOk(st.f.v,st.t.v)||(!(v>0)?'Indique un montant':'')||(!d?'Choisis une date':'');if(err){ov.querySelector('#virr').textContent=err;return}
 const r={f:st.f.v,t:st.t.v,v,d,p:q('p').value,n:q('n').value},V=S.trx.vir=S.trx.vir||[];if(id)Object.assign(old,r);else V.push({id:uid(),...r});cl();save('trx')}}
-const APP_V='12/10 · rappels privés';
+const APP_V='13/10 · case privé, anniversaires partagés';
 const SEAS={normal:'Normal',halloween:'Halloween',noel:'Noël'};
 const seasonPref=()=>{try{return localStorage.getItem('season')||'auto'}catch(e){return'auto'}};
 const seasonNow=()=>{const p=seasonPref();if(p!=='auto')return p;const m=new Date().getMonth();return m===9?'halloween':m===11?'noel':'normal'};
