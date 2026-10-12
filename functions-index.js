@@ -49,7 +49,7 @@ const b={summary:'✅ '+t.t+' ('+who+')',description:'Rappel ajouté depuis Tiki
 if(rec)b.recurrence=['RRULE:FREQ='+rec];return b}
 const leap=y=>y%4===0&&(y%100!==0||y%400===0);
 function gBodyBd(b,T){const y=+T.slice(0,4);let md=b.d.slice(5);if(md==='02-29'&&!leap(y))md='02-28';const d=y+'-'+md,by=+b.d.slice(0,4);
-return{summary:'🎂 Anniversaire de '+b.n,description:'Anniversaire ajouté depuis Tiki’s App · liste : '+(NAMES[b.w]||'Commun')+(by>1900?' · né(e) en '+by:''),colorId:'6',status:'confirmed',transparency:'transparent',reminders:{useDefault:true},extendedProperties:{private:{tiki:'1',tikiKind:'anniversaire'}},start:{date:d},end:{date:add(d,1)},recurrence:['RRULE:FREQ=YEARLY']}}
+return{summary:'🎂 Anniversaire de '+b.n+' ('+(NAMES[b.w]||'Commun')+')',description:'Anniversaire ajouté depuis Tiki’s App · liste : '+(NAMES[b.w]||'Commun')+(by>1900?' · né(e) en '+by:''),colorId:'6',status:'confirmed',transparency:'transparent',reminders:{useDefault:true},extendedProperties:{private:{tiki:'1',tikiKind:'anniversaire'}},start:{date:d},end:{date:add(d,1)},recurrence:['RRULE:FREQ=YEARLY']}}
 async function syncGcal(ag){const cal=CAL.value();if(!cal)return;
 const T=paris(now()).date,stRef=db.doc('notif/gcal'),st=await stRef.get(),m=(st.exists&&st.data().m)||{},evs=ag.ev||[],tks=(ag.tk||[]).filter(t=>t.id&&t.t&&t.d&&!t.x),bds=(ag.bd||[]).filter(b=>b.id&&b.n&&b.d),all=new Set([...evs.map(e=>e.id),...tks.map(t=>'tk:'+t.id),...bds.map(b=>'bd:'+b.id)]),cut=add(T,-30),todo=[],del=Object.keys(m).filter(id=>!all.has(id));
 const hash=b=>crypto.createHash('md5').update(JSON.stringify(b)).digest('hex');
