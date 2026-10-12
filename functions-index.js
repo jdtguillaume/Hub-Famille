@@ -25,7 +25,8 @@ ev.filter(e=>e.s).sort((a,b)=>a.s.localeCompare(b.s)).forEach(e=>L.push('🕒 '+
 const ml=(ag.ml||{})[T];if(ml&&(ml.m||ml.s))L.push('🍽️ Midi : '+(ml.m||'—')+' · Soir : '+(ml.s||'—'));
 return L.length?L.join('\n'):'Rien de prévu aujourd’hui.'}
 async function docsFor(w){const s=await db.collection('tokens').get(),out=[];s.forEach(d=>{const v=d.data();if(v.w===w)out.push({uid:d.id,tokens:(v.tokens||[]).map(t=>({t,ref:d.ref}))})});return out}
-async function privEv(uid){try{const d=await db.doc('private/'+uid).get();return(d.exists&&d.data().ev)||[]}catch(e){console.error('événements privés',uid,e.message);return[]}}
+async function privData(uid){try{const d=await db.doc('private/'+uid).get(),v=d.exists?d.data():{};return{ev:v.ev||[],tk:v.tk||[]}}catch(e){console.error('données privées',uid,e.message);return{ev:[],tk:[]}}}
+const privEv=async uid=>(await privData(uid)).ev;
 async function tokensFor(w){const s=await db.collection('tokens').get(),out=[];s.forEach(d=>{const v=d.data();if(v.w===w)(v.tokens||[]).forEach(t=>out.push({t,ref:d.ref}))});return out}
 async function push(list,data,label){if(!list.length){console.log('push: aucun appareil pour',label,'|',data.title);return{n:0,ok:0}}
 const res=await getMessaging().sendEachForMulticast({tokens:list.map(x=>x.t),data,webpush:{headers:{Urgency:'high',TTL:'3600'}}});
@@ -43,19 +44,24 @@ async function gToken(){const H={'Metadata-Flavor':'Google'},B='http://metadata.
 const[tk,em]=await Promise.all([fetch(B+'token',{headers:H}).then(r=>r.json()),fetch(B+'email',{headers:H}).then(r=>r.text())]);
 const r=await fetch('https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/'+em+':generateAccessToken',{method:'POST',headers:{Authorization:'Bearer '+tk.access_token,'Content-Type':'application/json'},body:JSON.stringify({scope:['https://www.googleapis.com/auth/calendar'],lifetime:'600s'})});
 if(!r.ok)throw new Error('Jeton Google refusé ('+r.status+') : '+await r.text());return{token:(await r.json()).accessToken,email:em}}
+function gBodyTk(t,T){const who=NAMES[t.w]||'Commun',rec={w:'WEEKLY',m:'MONTHLY',y:'YEARLY'}[t.r],late=!rec&&t.d<T,d=late?T:t.d;
+const b={summary:'✅ '+t.t+' ('+who+')',description:'Rappel ajouté depuis Tiki’s App · pour : '+who+(late?' · en retard depuis le '+t.d:''),colorId:'5',status:'confirmed',transparency:'transparent',reminders:{useDefault:true},extendedProperties:{private:{tiki:'1',tikiKind:'rappel'}},start:{date:d},end:{date:add(d,1)}};
+if(rec)b.recurrence=['RRULE:FREQ='+rec];return b}
 async function syncGcal(ag){const cal=CAL.value();if(!cal)return;
-const stRef=db.doc('notif/gcal'),st=await stRef.get(),m=(st.exists&&st.data().m)||{},evs=ag.ev||[],all=new Set(evs.map(e=>e.id)),cut=add(paris(now()).date,-30),todo=[],del=Object.keys(m).filter(id=>!all.has(id));
-const hash=e=>crypto.createHash('md5').update(JSON.stringify(gBody(e))).digest('hex');
-for(const e of evs){if(!e.d||!e.t)continue;if(endOf(e)<cut&&!m[e.id])continue;const h=hash(e);if(m[e.id]!==h)todo.push([e,h])}
+const T=paris(now()).date,stRef=db.doc('notif/gcal'),st=await stRef.get(),m=(st.exists&&st.data().m)||{},evs=ag.ev||[],tks=(ag.tk||[]).filter(t=>t.id&&t.t&&t.d&&!t.x),all=new Set([...evs.map(e=>e.id),...tks.map(t=>'tk:'+t.id)]),cut=add(T,-30),todo=[],del=Object.keys(m).filter(id=>!all.has(id));
+const hash=b=>crypto.createHash('md5').update(JSON.stringify(b)).digest('hex');
+for(const e of evs){if(!e.d||!e.t)continue;if(endOf(e)<cut&&!m[e.id])continue;const b=gBody(e),h=hash(b);if(m[e.id]!==h)todo.push([e.id,b,h])}
+for(const t of tks){const k='tk:'+t.id,b=gBodyTk(t,T),h=hash(b);if(m[k]!==h)todo.push([k,b,h])}
 if(!todo.length&&!del.length)return;
 const{token}=await gToken(),base='https://www.googleapis.com/calendar/v3/calendars/'+encodeURIComponent(cal)+'/events',H={Authorization:'Bearer '+token,'Content-Type':'application/json'},nm={...m};let n=0;
 for(const id of del){const r=await fetch(base+'/'+hexId(id),{method:'DELETE',headers:H});if(r.ok||r.status===404||r.status===410)delete nm[id];else console.error('gcal suppression',id,r.status)}
-for(const[e,h]of todo){if(n++>=40)break;const gid=hexId(e.id),body={...gBody(e),id:gid};let r=await fetch(base+'/'+gid,{method:'PUT',headers:H,body:JSON.stringify(body)});if(!r.ok)r=await fetch(base,{method:'POST',headers:H,body:JSON.stringify(body)});if(r.status===409)r=await fetch(base+'/'+gid,{method:'PATCH',headers:H,body:JSON.stringify(body)});if(r.ok)nm[e.id]=h;else console.error('gcal envoi',e.id,r.status,await r.text())}
+for(const[id,b0,h]of todo){if(n++>=40)break;const gid=hexId(id),body={...b0,id:gid};let r=await fetch(base+'/'+gid,{method:'PUT',headers:H,body:JSON.stringify(body)});if(!r.ok)r=await fetch(base,{method:'POST',headers:H,body:JSON.stringify(body)});if(r.status===409)r=await fetch(base+'/'+gid,{method:'PATCH',headers:H,body:JSON.stringify(body)});if(r.ok)nm[id]=h;else console.error('gcal envoi',id,r.status,await r.text())}
 await stRef.set({m:nm})}
+
 exports.dailySummary=onSchedule({schedule:'0 7 * * *',timeZone:TZ,region:REGION},async()=>{
 const T=paris(now()).date,snap=await db.doc('app/agenda').get(),ag=snap.exists?snap.data():{};
 for(const w of['g','p']){const docs=await docsFor(w);if(!docs.length){console.log('push: aucun appareil pour',w);continue}
-for(const d of docs){const ag2={...ag,ev:(ag.ev||[]).concat(await privEv(d.uid))};await push(d.tokens,{title:'Bonjour '+NAMES[w]+' — aujourd’hui',body:buildSummary(w,ag2,T),tag:'resume-'+T},w)}}});
+for(const d of docs){const pd=await privData(d.uid),ag2={...ag,ev:(ag.ev||[]).concat(pd.ev),tk:(ag.tk||[]).concat(pd.tk)};await push(d.tokens,{title:'Bonjour '+NAMES[w]+' — aujourd’hui',body:buildSummary(w,ag2,T),tag:'resume-'+T},w)}}});
 exports.eventReminders=onSchedule({schedule:'every 5 minutes',timeZone:TZ,region:REGION,timeoutSeconds:300},async()=>{
 const p=paris(now()),T=p.date,nowMin=dayNum(T)*1440+p.h*60+p.m,snap=await db.doc('app/agenda').get();if(!snap.exists)return
 const ag=snap.data(),stRef=db.doc('notif/state'),st=await stRef.get(),sent=new Set((st.exists&&st.data().sent)||[]),fresh=[];
@@ -72,4 +78,4 @@ if(r.n===0||r.ok>0){pv.forEach(x=>fresh.push(x.k2));anyOk=true}else console.log(
 if(L0.length&&anyOk)L0.forEach(x=>fresh.push(x.k2))}
 if(fresh.length)await stRef.set({sent:[...sent,...fresh].slice(-300)});
 try{await syncGcal(ag)}catch(err){console.error('Google Agenda :',err.message)}});
-if(process.env.FAKE_NOW)exports._t={buildSummary,nextTk,paris,ferie,gBody,hexId,syncGcal};
+if(process.env.FAKE_NOW)exports._t={buildSummary,nextTk,paris,ferie,gBody,gBodyTk,hexId,syncGcal};

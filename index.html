@@ -229,8 +229,11 @@ else{(pv?EVP():S.agenda.ev).push({id:uid(),...x});save(pv?'priv':'agenda')}},
 id&&(()=>{if(wasPv){S.priv.ev=EVP().filter(y=>y.id!==id);save('priv')}else{S.agenda.ev=S.agenda.ev.filter(y=>y.id!==id);save('agenda')}}))}
 function bdForm(id){const e=S.agenda.bd.find(x=>x.id===id)||{w:'c'};
 sheet(id?'Modifier':'Nouvel anniversaire',[{k:'n',l:'Nom',t:'text'},{k:'w',l:'Dans la liste de',t:'select',o:OW},{k:'d',l:'Date de naissance (année inconnue : 1900)',t:'date'}],e,r=>{if(!r.n||!r.d)return;if(id)Object.assign(e,r);else S.agenda.bd.push({id:uid(),...r});save('agenda')},id&&(()=>{S.agenda.bd=S.agenda.bd.filter(x=>x.id!==id);save('agenda')}))}
-function tkForm(id){const e=S.agenda.tk.find(x=>x.id===id)||{w:'c',r:'0',p:'n'};
-sheet(id?'Modifier le rappel':'Nouveau rappel',[{k:'t',l:'Tâche',t:'text'},{k:'w',l:'Pour',t:'select',o:OW},{k:'d',l:'Échéance (première date)',t:'date'},{k:'r',l:'Répétition',t:'select',o:[['0','Une seule fois'],['w','Chaque semaine'],['m','Chaque mois'],['y','Chaque année']]},{k:'p',l:'Priorité',t:'select',o:[['h','Haute'],['n','Normale'],['b','Basse']]}],e,r=>{if(!r.t)return;if(id)Object.assign(e,r);else S.agenda.tk.push({id:uid(),...r});save('agenda')},id&&(()=>{S.agenda.tk=S.agenda.tk.filter(x=>x.id!==id);save('agenda')}))}
+function tkForm(id){const old=TK().find(x=>x.id===id),wasPv=old?isPvT(old):false,e=old?{...old,pv:wasPv?'1':'0'}:{w:'c',r:'0',p:'n',pv:'0'};
+sheet(id?'Modifier le rappel':'Nouveau rappel',[{k:'t',l:'Tâche',t:'text'},{k:'pv',l:'Qui peut le voir (privé : ni l’autre, ni Google, ni Alexa)',t:'select',o:[['0','Tout le monde'],['1','🔒 Moi seulement']]},{k:'w',l:'Pour (ignoré si privé)',t:'select',o:OW},{k:'d',l:'Échéance (première date)',t:'date'},{k:'r',l:'Répétition',t:'select',o:[['0','Une seule fois'],['w','Chaque semaine'],['m','Chaque mois'],['y','Chaque année']]},{k:'p',l:'Priorité',t:'select',o:[['h','Haute'],['n','Normale'],['b','Basse']]}],e,r=>{if(!r.t)return;const pv=r.pv==='1',x={...r};delete x.pv;if(pv)x.w=myK()||'g';
+if(old){if(wasPv===pv){Object.assign(old,x);save(pv?'priv':'agenda')}else{if(wasPv)S.priv.tk=TKP().filter(y=>y.id!==id);else S.agenda.tk=S.agenda.tk.filter(y=>y.id!==id);(pv?TKP():S.agenda.tk).push({...old,...x});save(wasPv?'priv':'agenda');save(pv?'priv':'agenda')}}
+else{(pv?TKP():S.agenda.tk).push({id:uid(),...x});save(pv?'priv':'agenda')}},
+id&&(()=>{if(wasPv){S.priv.tk=TKP().filter(y=>y.id!==id);save('priv')}else{S.agenda.tk=S.agenda.tk.filter(y=>y.id!==id);save('agenda')}}))}
 function lnForm(id,t){const e=S.budget.lines.find(x=>x.id===id)||{a:acct,t,pr:0,re:0};
 sheet(id?'Modifier la ligne':'Nouvelle ligne',[{k:'n',l:'Nom de la ligne',t:'text'},{k:'t',l:'Type',t:'select',o:TY.map(([v,l])=>[v,l])},{k:'pr',l:'Prévu (€)',t:'number'},...(e.t==='epargne'?[{k:'sv',l:'Compte d’épargne alimenté',t:'select',o:S.savings.acc.map(a=>[a.id,esc(a.n)])}]:[])],{...e,sv:e.sv||svOf(e)},r=>{if(!r.n)return;if(id)Object.assign(e,r);else S.budget.lines.push({id:uid(),a:acct,t:e.t,...r});save('budget')},id&&(()=>{S.budget.lines=S.budget.lines.filter(x=>x.id!==id);save('budget')}))}
 function revForm(){sheet('Revenus nets mensuels',[{k:'g',l:'Guillaume (€)',t:'number'},{k:'p',l:'Pauline (€)',t:'number'}],S.budget.rev,r=>{S.budget.rev=r;save('budget')})}
@@ -239,22 +242,24 @@ const evSort=(a,b)=>((a.d<TODAY()?TODAY():a.d)+(a.s||'')).localeCompare((b.d<TOD
 const evRow=e=>`<div class="row ${e.w}" onclick="evForm('${e.id}')"><div class="t">${isPv(e)?'🔒 ':''}${esc(e.t)}<br><small>${fd(e.d)}${e.e&&e.e>e.d?' → '+fd(e.e):''} · ${e.s?e.s+(e.f?' - '+e.f:''):'Toute la journée'}</small></div>${chip(e.w)}</div>`;
 const bdRow=b=>{const n=nextBd(b),j=diffD(TODAY(),n),y=+b.d.slice(0,4);return `<div class="row ${b.w}" onclick="bdForm('${b.id}')"><div class="t">🎂 ${esc(b.n)}<br><small>${fd(n)}${y>1900?' · '+(+n.slice(0,4)-y)+' ans':''}</small></div><b>${j?'dans '+j+' j':'Aujourd’hui'}</b></div>`};
 const RP={0:'',w:'Chaque semaine',m:'Chaque mois',y:'Chaque année'};
-const tkRow=t=>{const n=nextTk(t),late=n&&n<TODAY();return `<div class="row ${t.w}" onclick="tkForm('${t.id}')"><div class="t">${esc(t.t)}<br><small>${n?(late?'<span class="late">'+fd(n)+'</span>':fd(n)):'Sans date'}${t.r&&t.r!=='0'?' · ↻ '+RP[t.r]:''} · ${{h:'Haute',n:'Normale',b:'Basse'}[t.p]}</small></div>${chip(t.w)}<button class="add" onclick="event.stopPropagation();doneTk('${t.id}')">✓</button></div>`};
-function doneTk(id){const t=S.agenda.tk.find(x=>x.id===id);t.x=1;save('agenda')}
+const tkRow=t=>{const n=nextTk(t),late=n&&n<TODAY();return `<div class="row ${t.w}" onclick="tkForm('${t.id}')"><div class="t">${isPvT(t)?'🔒 ':''}${esc(t.t)}<br><small>${n?(late?'<span class="late">'+fd(n)+'</span>':fd(n)):'Sans date'}${t.r&&t.r!=='0'?' · ↻ '+RP[t.r]:''} · ${{h:'Haute',n:'Normale',b:'Basse'}[t.p]}</small></div>${chip(t.w)}<button class="add" onclick="event.stopPropagation();doneTk('${t.id}')">✓</button></div>`};
+function setTkDone(id,v){const t=TK().find(x=>x.id===id);if(!t)return;t.x=v;save(isPvT(t)?'priv':'agenda')}
+function doneTk(id){setTkDone(id,1)}
 const myK=()=>me==='Guillaume'?'g':me==='Pauline'?'p':'',bdVis=b=>!b.w||b.w==='c'||b.w===myK(),BD=()=>S.agenda.bd.filter(bdVis);
+const TKP=()=>S.priv.tk||(S.priv.tk=[]),TK=()=>S.agenda.tk.concat(S.priv.tk||[]),isPvT=t=>!!(S.priv.tk&&S.priv.tk.includes(t));
 const EVP=()=>S.priv.ev||(S.priv.ev=[]),EV=()=>S.agenda.ev.concat(S.priv.ev||[]),isPv=e=>!!(S.priv.ev&&S.priv.ev.includes(e));
-const upEv=()=>EV().filter(e=>endOf(e)>=TODAY()).sort(evSort),upBd=()=>BD().sort((a,b)=>nextBd(a).localeCompare(nextBd(b))),upTk=()=>S.agenda.tk.filter(t=>!t.x).sort((a,b)=>(nextTk(a)||'9').localeCompare(nextTk(b)||'9'));
+const upEv=()=>EV().filter(e=>endOf(e)>=TODAY()).sort(evSort),upBd=()=>BD().sort((a,b)=>nextBd(a).localeCompare(nextBd(b))),upTk=()=>TK().filter(t=>!t.x).sort((a,b)=>(nextTk(a)||'9').localeCompare(nextTk(b)||'9'));
 const none=t=>`<div class="mut" style="padding:6px">${t}</div>`;
 let wxC=null,wxT=0,wxBusy=0;
 function wxChip(){const w=S.agenda.wx;if(!w)return`<span class="chipw" onclick="go('par')">☁️ Choisis ta ville</span>`;
 if(!wxBusy&&(!wxC||Date.now()-wxT>18e5)){wxBusy=1;getWx().then(x=>{wxC=x;wxT=Date.now();wxBusy=0;if(tab==='home')softRender()})}
 if(!wxC||wxC==='err')return`<span class="chipw">☁️ Météo…</span>`;const[i,l]=WX(wxC.code);return`<span class="chipw">${i} ${wxC.cur}° · ${wxC.min}°/${wxC.max}° · ${l}</span>`}
 const mn5=s=>{const[h,m]=s.split(':').map(Number);return h*60+m};
-function tl(){const T=TODAY(),d=new Date(),nowM=d.getHours()*60+d.getMinutes(),ev=EV().filter(e=>onDay(e,T)),f=hol(T),ml=(S.agenda.ml||{})[T]||{},bd=BD().filter(b=>b.d.slice(4)===T.slice(4)),tk=S.agenda.tk.filter(t=>!t.x&&nextTk(t)&&nextTk(t)<=T);
+function tl(){const T=TODAY(),d=new Date(),nowM=d.getHours()*60+d.getMinutes(),ev=EV().filter(e=>onDay(e,T)),f=hol(T),ml=(S.agenda.ml||{})[T]||{},bd=BD().filter(b=>b.d.slice(4)===T.slice(4)),tk=TK().filter(t=>!t.x&&nextTk(t)&&nextTk(t)<=T);
 const card=(cls,click,inner)=>`<div class="tli ${cls} ad" onclick="${click}"><div class="tt1"></div><span class="tdot"></span><div class="tc">${inner}</div></div>`;
 let top='';if(f)top+=card('m','',`<div class="tx">🎉 ${esc(f)}</div>`);
 ev.filter(e=>!e.s||e.d<T).forEach(e=>top+=card(e.w,`evForm('${e.id}')`,`<div class="tx">📌 ${isPv(e)?'🔒 ':''}${esc(e.t)}<small>${e.d<T?'depuis le '+fd(e.d):'Toute la journée'}${e.e&&e.e>e.d?' · jusqu’au '+fd(e.e):''}</small></div>${chip(e.w)}`));
-tk.forEach(t=>{const n=nextTk(t);top+=card(t.w,`tkForm('${t.id}')`,`<div class="tx">✅ ${esc(t.t)}<small>${n<T?'<span class="late">en retard</span> ':''}${t.r&&t.r!=='0'?'↻ '+RP[t.r]:'À faire aujourd’hui'}</small></div>${chip(t.w)}<button class="add" onclick="event.stopPropagation();doneTk('${t.id}')">✓</button>`)});
+tk.forEach(t=>{const n=nextTk(t);top+=card(t.w,`tkForm('${t.id}')`,`<div class="tx">✅ ${isPvT(t)?'🔒 ':''}${esc(t.t)}<small>${n<T?'<span class="late">en retard</span> ':''}${t.r&&t.r!=='0'?'↻ '+RP[t.r]:'À faire aujourd’hui'}</small></div>${chip(t.w)}<button class="add" onclick="event.stopPropagation();doneTk('${t.id}')">✓</button>`)});
 bd.forEach(b=>top+=card(b.w||'c',`bdForm('${b.id}')`,`<div class="tx">🎂 Anniversaire de ${esc(b.n)}</div>`));
 const it=[];ev.filter(e=>e.s&&e.d>=T).forEach(e=>it.push({m:mn5(e.s),t:e.s,x:e.f,end:e.f?mn5(e.f):mn5(e.s)+60,c:e.w,click:`evForm('${e.id}')`,h:`<div class="tx">${isPv(e)?'🔒 ':''}${esc(e.t)}</div>${chip(e.w)}`}));
 if(ml.m)it.push({m:720,t:'12:00',x:'',end:780,c:'m',click:"go('org','rep')",h:`<div class="tx">🍽️ Midi<small>${esc(ml.m)}</small></div>`});
@@ -280,7 +285,7 @@ else if(pr>=30)L.push('☂️ Risque d’averses ('+pr+' %) : un petit parapluie
 if(c>=95)L.push('⚡ Orages possibles : évite de rester dehors.');
 if(c===45||c===48)L.push('🌫️ Brouillard : prends des vêtements bien visibles si tu roules.');
 return'<b>👕 Comment s’habiller</b>'+L.map(l=>'<div>'+l+'</div>').join('')}
-function home(){const T=TODAY(),n=w=>EV().filter(e=>e.w===w&&onDay(e,T)).length+S.agenda.tk.filter(t=>t.w===w&&!t.x&&nextTk(t)&&nextTk(t)<=T).length,fr=hol(T);
+function home(){const T=TODAY(),n=w=>EV().filter(e=>e.w===w&&onDay(e,T)).length+TK().filter(t=>t.w===w&&!t.x&&nextTk(t)&&nextTk(t)<=T).length,fr=hol(T);
 return`<div class="hero"><div class="hi">Bonjour ${esc(me)} <span class="hand" onclick="openStory()" title="Touche pour voir ta journée">${handIcon()}</span></div><div class="hd">${dt(T).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})}${fr?' · '+esc(fr):''}</div><div class="hrow">${wxChip()}</div></div>
 <div class="pills">${['g','p','c'].map(w=>`<div class="pill ${w}"><b>${n(w)}</b><span>${W[w]}</span></div>`).join('')}</div>${sizeWarn()}
 <h2>Aujourd’hui</h2>${tl()}
@@ -295,7 +300,7 @@ const ev=EV().filter(e=>onDay(e,selDay)),bd=BD().filter(b=>b.d.slice(4)===selDay
 return h+`</div><h2>${fd(selDay)}${hol(selDay)?' · '+hol(selDay):''}<button class="add" onclick="evForm('','${selDay}')">+ Événement</button></h2>${ev.map(evRow).join('')+bd.map(bdRow).join('')||none('Rien ce jour-là')}
 <h2>Tous les événements à venir</h2>${upEv().map(evRow).join('')||none('Rien de prévu')}`}
 function cm(n){calDir=n>0?'sl':'sr';calM+=n;if(calM<0){calM=11;calY--}if(calM>11){calM=0;calY++}render()}
-function tasks(){const done=S.agenda.tk.filter(t=>t.x);return subbar('org')+`<h2>Rappels à faire<button class="add" onclick="tkForm()">+ Rappel</button></h2>${upTk().map(tkRow).join('')||none('Aucun rappel')}${done.length?`<h2>Terminés</h2>`+done.map(t=>`<div class="row ${t.w}" onclick="tkForm('${t.id}')"><div class="t"><s>${esc(t.t)}</s></div><button class="add" onclick="event.stopPropagation();S.agenda.tk.find(x=>x.id==='${t.id}').x=0;save('agenda')">↺</button></div>`).join(''):''}`}
+function tasks(){const done=TK().filter(t=>t.x);return subbar('org')+`<h2>Rappels à faire<button class="add" onclick="tkForm()">+ Rappel</button></h2>${upTk().map(tkRow).join('')||none('Aucun rappel')}${done.length?`<h2>Terminés</h2>`+done.map(t=>`<div class="row ${t.w}" onclick="tkForm('${t.id}')"><div class="t"><s>${esc(t.t)}</s></div><button class="add" onclick="event.stopPropagation();setTkDone('${t.id}',0)">↺</button></div>`).join(''):''}`}
 const period=t=>t.p||t.d.slice(0,7),txInfo=t=>{const l=LN(t.l);return l?{a:l.a,n:l.n,t:l.t,sv:l.t==='epargne'?svOf(l):''}:{a:t.ca,n:t.cn,t:t.ct,sv:t.cs}};
 const reel=l=>S.trx.tx.filter(t=>t.l===l.id&&period(t)===S.budget.mois).reduce((s,t)=>s+(+t.v||0),0),LN=id=>S.budget.lines.find(l=>l.id===id);
 const vp=x=>x.p||x.d.slice(0,7),vNet=(ep,all)=>(S.trx.vir||[]).filter(x=>all||vp(x)===S.budget.mois).reduce((s,x)=>s+(x.t===ep?+x.v||0:0)-(x.f===ep?+x.v||0:0),0),prEff=l=>(+l.pr||0)+vNet('l:'+l.id);
@@ -355,7 +360,7 @@ async function getWx(){const w=S.agenda.wx;if(!w)return null;try{const r=await f
 function wxHtml(x){if(x===null)return'<b>Météo</b><div>Choisis ta ville dans Paramètres pour voir la météo ici.</div>';if(x==='err')return'<b>Météo</b><div>Indisponible pour le moment.</div>';const[i,l]=WX(x.code);return`<b>${i} ${l} à ${esc(x.n)}</b><div>${x.cur}° maintenant · min ${x.min}° / max ${x.max}° · pluie ${x.pr??0} %</div>`}
 function dayLines(w,T,all){const own=e=>e.w===w||(all&&e.w==='c'),ev=EV().filter(e=>onDay(e,T)&&own(e)),L=[];
 ev.filter(e=>!e.s).forEach(e=>L.push('📌 '+esc(e.t)+(e.w==='c'?' · Commun':'')));ev.filter(e=>e.s).sort((a,b)=>a.s.localeCompare(b.s)).forEach(e=>L.push('🕒 '+e.s+(e.f?' - '+e.f:'')+' '+esc(e.t)+(e.w==='c'?' · Commun':'')));
-S.agenda.tk.filter(t=>!t.x&&own(t)).forEach(t=>{const n=nextTk(t);if(n&&n<=T)L.push('✅ '+esc(t.t)+(n<T?' (en retard)':'')+(t.w==='c'?' · Commun':''))});return L}
+TK().filter(t=>!t.x&&own(t)).forEach(t=>{const n=nextTk(t);if(n&&n<=T)L.push('✅ '+esc(t.t)+(n<T?' (en retard)':'')+(t.w==='c'?' · Commun':''))});return L}
 function storyData(){const T=TODAY(),k=me==='Guillaume'?'g':me==='Pauline'?'p':'',o=k==='g'?'p':k==='p'?'g':'',B=[],mine=dayLines(k,T,true);
 B.push({k:'me',h:'<b>Aujourd’hui tu as</b>'+(mine.length?mine.map(l=>'<div>'+l+'</div>').join(''):'<div>Rien de prévu pour toi 🎉</div>')});
 if(o){const ol=dayLines(o,T,false);B.push({k:'ot',h:'<b>'+W[o]+' a de son côté</b>'+(ol.length?ol.map(l=>'<div>'+l+'</div>').join(''):'<div>Rien de prévu.</div>')})}
@@ -382,7 +387,7 @@ function sizeCard(){return `<div class="card">${BL.map(([k,l])=>{const b=sizeOf(
 function sizeWarn(){const w=BL.filter(([k])=>sizeOf(k)/LIM>=.7);return w.length?`<div class="card" style="background:#FFD1C1;color:#4A4A4A">⚠️ Espace presque plein : ${w.map(([k,l])=>l+' ('+Math.round(sizeOf(k)/LIM*100)+' %)').join(', ')}. Demande l’archivage par année à Claude avant que l’enregistrement ne se bloque.</div>`:''}
 function backfill(){if(!loaded.budget||!loaded.trx)return;let ch=0;S.trx.tx.forEach(t=>{if(t.ca===undefined){const l=LN(t.l);if(l){t.ca=l.a;t.cn=l.n;t.ct=l.t;t.cs=l.t==='epargne'?(svOf(l)||''):'';ch=1}}});if(ch)save('trx',1)}
 function migrate(){if(!loaded.budget||!loaded.trx||S.budget.mig)return;const B=S.budget;B.lines.forEach(l=>{if(+l.re){S.trx.tx.push({id:uid(),d:B.mois+'-01',l:l.id,n:'Réel saisi avant les transactions',v:+l.re});l.re=0}});B.mig=1;save('trx',1);save('budget',1)}
-function todayBlock(){const T=TODAY(),ev=EV().filter(e=>onDay(e,T)),full=ev.filter(e=>!e.s),timed=ev.filter(e=>e.s).sort((a,b)=>a.s.localeCompare(b.s)),bd=BD().filter(b=>b.d.slice(4)===T.slice(4)),tk=S.agenda.tk.filter(t=>!t.x&&nextTk(t)&&nextTk(t)<=T),ml=(S.agenda.ml||{})[T]||{},f=hol(T),any=ev.length+bd.length+tk.length||ml.m||ml.s||f;
+function todayBlock(){const T=TODAY(),ev=EV().filter(e=>onDay(e,T)),full=ev.filter(e=>!e.s),timed=ev.filter(e=>e.s).sort((a,b)=>a.s.localeCompare(b.s)),bd=BD().filter(b=>b.d.slice(4)===T.slice(4)),tk=TK().filter(t=>!t.x&&nextTk(t)&&nextTk(t)<=T),ml=(S.agenda.ml||{})[T]||{},f=hol(T),any=ev.length+bd.length+tk.length||ml.m||ml.s||f;
 return `<h2>Aujourd’hui</h2>`+(f?`<div class="row"><div class="t">🎉 ${esc(f)}</div></div>`:'')+full.map(evRow).join('')+timed.map(evRow).join('')+tk.map(tkRow).join('')+bd.map(bdRow).join('')+(ml.m||ml.s?`<div class="row"><div class="t">🍽️ Repas<br><small>Midi : ${esc(ml.m||'—')} · Soir : ${esc(ml.s||'—')}</small></div></div>`:'')+(any?'':none('Rien de prévu aujourd’hui'))}
 function repas(){const T=TODAY(),mon=add(T,-((dt(T).getDay()+6)%7)+7*wk),M=S.agenda.ml||{};
 return subbar('org')+`<div class="nav2"><button class="add" onclick="wk--;render()">‹</button><span style="text-transform:none">Semaine du ${fd(mon)}</span><button class="add" onclick="wk=0;render()">Cette semaine</button><button class="add" onclick="wk++;render()">›</button></div>`+Array.from({length:7},(_,i)=>{const x=add(mon,i),m=M[x]||{};return `<div class="row" ${x===T?'style="border-left-color:var(--now)"':''} onclick="mlForm('${x}')"><div class="t"><b>${fd(x)}</b>${hol(x)?' · '+esc(hol(x)):''}<br><small>☀️ Midi : ${esc(m.m||'—')}<br>🌙 Soir : ${esc(m.s||'—')}</small></div></div>`}).join('')}
@@ -495,7 +500,7 @@ const cl=()=>ov.remove(),q=k=>ov.querySelector(`[data-k=${k}]`);ov.onclick=ev=>{
 ov.querySelector('[data-a=x]').onclick=cl;const dl=ov.querySelector('[data-a=d]');if(dl)dl.onclick=()=>{S.trx.vir=(S.trx.vir||[]).filter(x=>x.id!==id);cl();save('trx')};
 ov.querySelector('[data-a=ok]').onclick=()=>{const v=+q('v').value,d=q('d').value,err=virOk(st.f.v,st.t.v)||(!(v>0)?'Indique un montant':'')||(!d?'Choisis une date':'');if(err){ov.querySelector('#virr').textContent=err;return}
 const r={f:st.f.v,t:st.t.v,v,d,p:q('p').value,n:q('n').value},V=S.trx.vir=S.trx.vir||[];if(id)Object.assign(old,r);else V.push({id:uid(),...r});cl();save('trx')}}
-const APP_V='12/10 · événements privés';
+const APP_V='12/10 · rappels privés';
 const SEAS={normal:'Normal',halloween:'Halloween',noel:'Noël'};
 const seasonPref=()=>{try{return localStorage.getItem('season')||'auto'}catch(e){return'auto'}};
 const seasonNow=()=>{const p=seasonPref();if(p!=='auto')return p;const m=new Date().getMonth();return m===9?'halloween':m===11?'noel':'normal'};
