@@ -252,6 +252,7 @@ header{position:relative;z-index:8}#hdeco{position:absolute;left:0;right:0;top:1
 .wkact+.wkact{margin-top:8px}
 .bxbtn{width:100%;margin:8px 0 4px}.bxpv{border-color:rgba(111,243,195,.45);background:rgba(111,243,195,.08)}.bxpv b{display:block;margin-bottom:4px}.bxb{display:flex;gap:8px;margin-top:8px}.bxb button{flex:1}.bxta{width:100%;min-height:140px;margin:10px 0 8px;padding:10px;border-radius:12px;border:1px solid var(--bd);background:var(--glass);color:var(--tx);font-size:15px}.bxerr{margin-top:10px;padding:8px 10px;border-radius:10px;background:rgba(255,179,71,.14);border:1px solid rgba(255,179,71,.45);font-size:13px}.bxim{margin-top:10px}.bxim summary{cursor:pointer;color:var(--mut);font-size:14px}.bxim img{width:100%;border-radius:10px;margin-top:8px}.bxcount{display:flex;align-items:center;gap:8px;margin:12px 2px 6px}.bxcount b{font-size:17px}.bxcount .add{margin-left:auto}
 .bxc{background:var(--glass);border:1px solid var(--bd);border-radius:18px;padding:12px 14px;margin-bottom:10px}.bxc.cr{opacity:.85}.bxt{display:flex;align-items:flex-start;gap:10px}.bxt>div{flex:1;min-width:0}.bxt b{font-size:16px;word-break:break-word}.bxt small{display:block;color:var(--mut);font-size:12px;margin-top:2px}.bxv{font-size:18px!important;white-space:nowrap;font-variant-numeric:tabular-nums}.bxv.in{color:#6ff3c3}.bxf{margin-top:8px;padding:6px 10px;border-radius:10px;background:rgba(255,179,71,.14);font-size:13px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}.bxs{width:100%;margin-top:10px;padding:12px;border-radius:12px;border:1px solid var(--bd);background:var(--glass);color:var(--tx);font-size:15px}.bxp{display:block;margin-top:8px;font-size:12px;color:var(--mut)}.bxpp{width:100%;margin-top:4px;padding:10px;border-radius:10px;border:1px solid var(--bd);background:var(--glass);color:var(--tx)}.bxed{margin-top:8px}.bxed summary{cursor:pointer;color:var(--mut);font-size:13px}.bxed label{display:block;font-size:12px;color:var(--mut);margin-top:8px}.bxed input{width:100%;margin-top:4px}.bxg{display:flex;gap:8px}.bxg label{flex:1;min-width:0}.bxr{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:13px;color:var(--mut)}.bxr input{width:20px;height:20px;accent-color:var(--a1,#ad8fff)}
+.txb{margin-top:10px}.txb small{display:block}.sbs{display:block;width:fit-content;margin-top:8px;font-size:12px;color:var(--mut);text-decoration:underline}
 </style></head><body><div id="deco"></div>
 <header><div id="hdeco"></div><button class="lgb" onclick="go('home')" aria-label="Accueil"><img class="lg" src="icon-192.png?v=3" alt=""></button><b class="tt">Tiki's App</b><span id="tte"></span><button class="hb bell" onclick="openInbox()" aria-label="Notifications">🔔<i id="bn"></i></button><button class="hb" onclick="logout()" aria-label="Déconnexion"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg></button><span class="sp"></span><button class="hb" onclick="undo()" aria-label="Annuler">↶</button><button class="hb" onclick="redo()" aria-label="Rétablir">↷</button></header><div id="subnav" style="display:none"></div><div id="m"></div>
 <div id="login"><div class="card" style="width:min(340px,90%)"><h3 style="margin-top:0">Tiki's App</h3><input id="em" type="email" placeholder="E-mail" autocomplete="username"><input id="pw" type="password" placeholder="Mot de passe" autocomplete="current-password"><div id="err" style="color:#c0392b;font-size:13px;min-height:18px"></div><button class="b1" style="width:100%" onclick="login()">Se connecter</button></div></div>
@@ -361,7 +362,7 @@ if(c===45||c===48)L.push('🌫️ Brouillard : prends des vêtements bien visibl
 return'<b>👕 Comment s’habiller</b>'+L.map(l=>'<div>'+l+'</div>').join('')}
 function home(){const T=TODAY(),n=w=>EV().filter(e=>e.w===w&&onDay(e,T)).length+TK().filter(t=>t.w===w&&!t.x&&nextTk(t)&&nextTk(t)<=T).length,fr=hol(T);
 return`<div class="hero"><div class="hi">Bonjour ${esc(me)} <span class="hand" onclick="openStory()" title="Touche pour voir ta journée">${handIcon()}</span></div><div class="hd">${dt(T).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})}${fr?' · '+esc(fr):''}</div><div class="hrow">${wxChip()}</div></div>
-<div class="pills">${['g','p','c'].map(w=>`<div class="pill ${w}"><b>${n(w)}</b><span>${W[w]}</span></div>`).join('')}</div>${sizeWarn()}${shiftBanner()}
+<div class="pills">${['g','p','c'].map(w=>`<div class="pill ${w}"><b>${n(w)}</b><span>${W[w]}</span></div>`).join('')}</div>${sizeWarn()}${shiftBanner()}${txBanner()}
 <h2>Aujourd’hui</h2>${tl()}
 <h2>Argent</h2>${moneyCard()}
 <h2>Prochainement</h2>${upEv().filter(e=>e.d>T).slice(0,6).map(evRow).join('')||none('Rien de prévu les prochains jours')}
@@ -639,7 +640,12 @@ val.onclick=()=>{if(val.disabled)return;e.ra=ra.value;wkApplyAdj(e);const mo=ov.
 pick()}
 function shiftTarget(){const me=myK();if(!me)return null;const n=new Date(),T=TODAY(),nm=n.getHours()*60+n.getMinutes();for(const D of[T,add(T,-1)]){const k=monOf(D),i=(dt(D).getDay()+6)%7,e=(wkGet(k,me).d||{})[i];if(!e||!e.s||!e.f||wkKd(e)||e.ok)continue;const endD=hmN(e.f)<=hmN(e.s)?add(D,1):D;if(endD!==T||nm<hmN(e.f))continue;return{k,w:me,i,D,e}}return null}
 function shiftBanner(){const t=shiftTarget();if(!t)return'';const e=t.e;return`<div class="shiftb" onclick="wkDayAt('${t.k}','${t.w}',${t.i})"><div class="sbt"><b>Valide ton shift</b><small>${fd(t.D)} · ${e.s} → ${e.f}</small></div><span class="sbb">Valider</span></div>`}
-let shiftSig='';setInterval(()=>{const t=shiftTarget(),sg=t?t.k+t.i:'';if(sg!==shiftSig){shiftSig=sg;if(tab==='home'&&typeof render==='function')render()}},20000);
+const txDoneKey=()=>{try{return localStorage.getItem('txDone')||''}catch(e){return''}};
+const txBannerOn=()=>!!myK()&&new Date().getHours()>=17&&txDoneKey()!==TODAY();
+function txBanner(){if(!txBannerOn())return'';const n=BXP.filter(r=>r.cr!=='CRDT').length;return`<div class="shiftb txb" onclick="txGoImport()"><div class="sbt"><b>${n?n+' transaction'+(n>1?'s':'')+' à valider':'Valide tes transactions'}</b><small>${n?'Reprends ton import de capture':'Importe ta capture et classe tes dépenses du jour'}</small><a href="#" class="sbs" onclick="event.stopPropagation();txDismiss();return false">Rien à valider aujourd’hui</a></div><span class="sbb">${n?'Continuer':'Importer'}</span></div>`}
+function txGoImport(){go('fin','trx');bxOpen()}
+function txDismiss(){try{localStorage.setItem('txDone',TODAY())}catch(e){}render()}
+let shiftSig='';setInterval(()=>{const t=shiftTarget(),sg=(t?t.k+t.i:'')+'|'+(txBannerOn()?1:0)+'|'+BXP.length;if(sg!==shiftSig){shiftSig=sg;if(tab==='home'&&typeof render==='function')render()}},20000);
 function wkOcList(w,m){const out=[],W2=S.agenda.wk||{};for(const k of Object.keys(W2)){const o=(W2[k]||{})[w];if(!o||!o.d)continue;for(let i=0;i<7;i++){const e=o.d[i],d=add(k,i);if(e&&(e.hp||e.da)&&d.slice(0,7)===m)out.push({k,i,d,e})}}return out.sort((a,b)=>a.d.localeCompare(b.d))}
 function wkOcTog(k,w,i){const e=((wkEns(k,w).d)||{})[i];if(!e)return;if(e.oc)delete e.oc;else e.oc=1;save('agenda')}
 let wkView='h',ocM='';
@@ -760,7 +766,7 @@ const cl=()=>ov.remove(),q=k=>ov.querySelector(`[data-k=${k}]`);ov.onclick=ev=>{
 ov.querySelector('[data-a=x]').onclick=cl;const dl=ov.querySelector('[data-a=d]');if(dl)dl.onclick=()=>askDel('Supprimer ce virement ? Les soldes concernés seront recalculés.',()=>{S.trx.vir=(S.trx.vir||[]).filter(x=>x.id!==id);cl();save('trx')});
 ov.querySelector('[data-a=ok]').onclick=()=>{const v=+q('v').value,d=q('d').value,err=virOk(st.f.v,st.t.v)||(!(v>0)?'Indique un montant':'')||(!d?'Choisis une date':'');if(err){ov.querySelector('#virr').textContent=err;return}
 const r={f:st.f.v,t:st.t.v,v,d,p:q('p').value,n:q('n').value},V=S.trx.vir=S.trx.vir||[];if(id)Object.assign(old,r);else V.push({id:uid(),...r});cl();save('trx')}}
-const APP_V='22/10 · import de transactions par capture';
+const APP_V='22/10 · dates des captures corrigées, bouton transactions 17h';
 const SEAS={normal:'Normal',halloween:'Halloween',noel:'Noël'};
 try{if(localStorage.getItem('season')==='figment')localStorage.removeItem('season');localStorage.removeItem('figImg')}catch(e){}
 const seasonPref=()=>{try{return localStorage.getItem('season')||'auto'}catch(e){return'auto'}};
@@ -808,7 +814,7 @@ auth.onAuthStateChanged(u=>{me=u?nameOf(u.email):'';meUid=u?u.uid:'';render();if
 for(const k of['budget','agenda','savings','trx','priv'])unsub.push(fs.doc(pathOf(k)).onSnapshot(sn=>{loaded[k]=1;if(sn.exists&&!busy[k]){S[k]=Object.assign(S[k],JSON.parse(JSON.stringify(sn.data())));const fx=deepFix(S[k]);base[k]=JSON.stringify(strip(S[k]));softRender();if(fx)save(k,1)}migrate();backfill();migEp()},()=>toast('Accès refusé ou connexion perdue')))});
 /* ===== Import de captures : analyse du texte lu (fonctions pures, sans accès réseau) ===== */
 const BXM={janv:1,janvier:1,fevr:2,fev:2,fevrier:2,mars:3,avr:4,avril:4,mai:5,juin:6,juil:7,juillet:7,aout:8,sept:9,septembre:9,oct:10,octobre:10,nov:11,novembre:11,dec:12,decembre:12};
-const bxFlat=s=>String(s==null?'':s).toLowerCase().replace(/[àâä]/g,'a').replace(/[éèêë]/g,'e').replace(/[îï]/g,'i').replace(/[ôö]/g,'o').replace(/[ùûü]/g,'u').replace(/ç/g,'c').replace(/œ/g,'o');
+const bxFlat=s=>String(s==null?'':s).toLowerCase().replace(/[àâä]/g,'a').replace(/[éèêë]/g,'e').replace(/[îï]/g,'i').replace(/[ôö]/g,'o').replace(/[ùûü]/g,'u').replace(/ç/g,'c').replace(/œ/g,'o').replace(/[’‘`´ʼ′]/g,"'").replace(/\u00a0/g,' ');
 const bxNorm=s=>bxFlat(s).replace(/[^a-z\s]/g,' ').replace(/\s+/g,' ').trim();
 const BX_STOP=new Set(['carte','prlv','prelevement','vir','virement','sepa','paiement','achat','facture','fact','pmt','pay','par','les','des','sur','sas','sarl','cb','retrait','dab','recu','emis','eu']);
 const bxKey=l=>bxNorm(l).split(' ').filter(x=>x.length>=3&&!BX_STOP.has(x)).slice(0,2).join(' ');
@@ -816,7 +822,8 @@ const bxIso=(y,m,d)=>y+'-'+String(m).padStart(2,'0')+'-'+String(d).padStart(2,'0
 const bxAddD=(iso,n)=>{const d=new Date(iso+'T12:00:00');d.setDate(d.getDate()+n);return bxIso(d.getFullYear(),d.getMonth()+1,d.getDate())};
 const BX_AMT=/(?<![\d.,\/])([+\-−–—~]?)\s?(\d{1,3}(?:[ \u00a0\u202f.]\d{3})+|\d+)\s?[,.]\s?(\d{2})(?!\d)(?!\s?[.,\/]\d)/g;
 function bxAmounts(txt){const out=[];for(const m of String(txt).matchAll(BX_AMT)){const v=parseFloat(m[2].replace(/[ \u00a0\u202f.]/g,'')+'.'+m[3]);if(!(v>0)||v>200000)continue;out.push({i:m.index,e:m.index+m[0].length,v:Math.round(v*100)/100,cr:m[1]==='+'?'CRDT':'DBIT',sg:m[1]})}return out}
-function bxFindDate(txt,ref){const f=bxFlat(txt);let m;
+const bxLev=(a,b)=>{const m=a.length,n=b.length,d=[];for(let i=0;i<=m;i++)d[i]=[i];for(let j=1;j<=n;j++)d[0][j]=j;for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n]};
+function bxFindDate(txt,ref,loose){const f=bxFlat(txt);let m;
 if((m=f.match(/aujourd'?\s?hui/)))return{iso:ref,i:m.index,e:m.index+m[0].length};
 if((m=f.match(/avant[\s-]?hier/)))return{iso:bxAddD(ref,-2),i:m.index,e:m.index+m[0].length};
 if((m=f.match(/\bhier\b/)))return{iso:bxAddD(ref,-1),i:m.index,e:m.index+m[0].length};
@@ -825,6 +832,10 @@ const re1=/(?<![\d,.\/])(\d{1,2})\s?\/\s?(\d{1,2})(?:\s?\/\s?(\d{4}|\d{2}))?(?![
 for(const re of[re1,re2]){for(const x of f.matchAll(re)){const iso=fix(x[1],x[2],x[3]);if(iso)return{iso,i:x.index,e:x.index+x[0].length}}}
 const re3=/(?<!\d)(\d{1,2})(?:er)?\s?(janvier|janv|fevrier|fevr|fev|mars|avril|avr|mai|juin|juillet|juil|aout|septembre|sept|octobre|oct|novembre|nov|decembre|dec)\b\.?(?:\s?(\d{4}))?/;
 if((m=f.match(re3))){const iso=fix(m[1],BXM[m[2]],m[3]);if(iso)return{iso,i:m.index,e:m.index+m[0].length}}
+if(loose){const tk=[...f.matchAll(/[a-z0-9']+/g)].map(x=>({t:x[0].replace(/'/g,''),i:x.index,e:x.index+x[0].length}));
+for(let k=0;k<tk.length;k++)for(const sp of[1,2]){if(k+sp>tk.length)continue;const t=tk.slice(k,k+sp).map(x=>x.t).join(''),i=tk[k].i,e=tk[k+sp-1].e;
+if(t.length>=8&&bxLev(t,'aujourdhui')<=2)return{iso:ref,i,e};if(t.length>=7&&bxLev(t,'avanthier')<=2)return{iso:bxAddD(ref,-2),i,e};
+if(sp===1&&tk.length===1&&t.length===4&&bxLev(t,'hier')<=1&&!/^(pier|bier|mier|tier|vier|fier|hiez)$/.test(t))return{iso:bxAddD(ref,-1),i,e}}}
 return null}
 function bxFindTime(txt){const m=String(txt).match(/(?<![\d:,.])([01]?\d|2[0-3])\s?[:h]\s?([0-5]\d)(?![\d])/);return m?{h:String(m[1]).padStart(2,'0')+':'+m[2],i:m.index,e:m.index+m[0].length}:null}
 const bxCut=(t,a,b)=>t.slice(0,a)+' '+t.slice(b);
@@ -839,14 +850,16 @@ const bxTextLines=txt=>String(txt||'').split(/\r?\n/).map((t,i)=>({y:i,text:t.tr
 function bxParse(lines,ref){const P=[];
 for(const ln of lines){const t=String(ln.text||'').replace(/\s+/g,' ').trim();if(!t)continue;const am=bxAmounts(t),a=am.length?am[am.length-1]:null;let rest=t;
  if(a){rest=t.slice(0,a.i)+' '+t.slice(a.e);for(const x of am.slice(0,-1))rest=rest.replace(t.slice(x.i,x.e),' ')}
- rest=rest.replace(/€|\beuros?\b/gi,' ');const dt=bxFindDate(rest,ref),tm=bxFindTime(rest);let lab=rest;
+ rest=rest.replace(/€|\beuros?\b/gi,' ');const dt=bxFindDate(rest,ref,!a&&rest.trim().split(/\s+/).length<=4),tm=bxFindTime(rest);let lab=rest;
  const cuts=[dt&&[dt.i,dt.e],tm&&[tm.i,tm.e]].filter(Boolean).sort((p,q)=>q[0]-p[0]);for(const[p,q]of cuts)lab=bxCut(lab,p,q);
- const lab2=bxClean(lab.replace(BX_WD,' '));P.push({a,dt,tm,lab2,letters:(lab2.match(/[A-Za-zÀ-ÿ]/g)||[]).length})}
+ const lab2=bxClean(lab.replace(BX_WD,' '));P.push({a,dt,tm,lab2,y:+ln.y||0,letters:(lab2.match(/[A-Za-zÀ-ÿ]/g)||[]).length})}
 const rows=[];let cur=null,last=null;
 const fill=(r,p)=>{if(p.tm&&!r.h)r.h=p.tm.h;if(p.dt&&!r.dx){r.d=p.dt.iso;r.dx=1}};
 for(let i=0;i<P.length;i++){const p=P[i],nx=P[i+1];
  if(!p.a){
-  if(p.dt&&p.letters<=2){cur=p.dt.iso;continue}
+  if(p.dt&&p.letters<=4){const pv=P[i-1],gp=pv?p.y-pv.y:1e9,gn=nx?nx.y-p.y:1e9;
+   if(last&&last.amt&&!last.dx&&(p.tm||gp<gn*.85)){last.d=p.dt.iso;last.dx=1;if(p.tm&&!last.h)last.h=p.tm.h;continue}
+   cur=p.dt.iso;continue}
   if(nx&&nx.a&&nx.letters<2&&p.letters>=2){last={label:p.lab2,v:0,cr:'DBIT',sg:'',d:p.dt?p.dt.iso:cur,dx:p.dt?1:0,h:p.tm?p.tm.h:'',sub:'',amt:false,n:0};rows.push(last);continue}
   if(last&&last.amt&&last.n<2){fill(last,p);if(p.lab2&&p.lab2.length>2&&last.sub.length<60)last.sub=(last.sub+' '+p.lab2).trim();last.n++}
   continue}
@@ -856,7 +869,7 @@ for(let i=0;i<P.length;i++){const p=P[i],nx=P[i+1];
 const seen={},out=[];
 for(const r of rows){if(!r.amt||!r.label)continue;let cr=r.cr;if(cr==='DBIT'&&r.sg!=='-'&&r.sg!=='−'&&BX_CR.test(bxFlat(r.label)))cr='CRDT';
  const d=r.d||ref,base=d+'|'+r.v.toFixed(2)+'|'+(bxKey(r.label)||bxFlat(r.label).slice(0,12));seen[base]=(seen[base]||0)+1;
- out.push({label:r.label,v:r.v,cr,d,h:r.h||'',sub:r.sub,dflag:!r.d,sg:base+'#'+seen[base]})}
+ out.push({label:r.label,v:r.v,cr,d,h:r.h||'',sub:r.sub,dflag:!r.d&&!r.h,sg:base+'#'+seen[base]})}
 return out}
 if(typeof module!=='undefined')module.exports={bxParse,bxLines,bxTextLines,bxAmounts,bxFindDate,bxFindTime,bxKey,bxNorm,bxClean};
 
@@ -888,7 +901,7 @@ function bxPasteGo(){const t=(document.getElementById('bxtxt')||{}).value||'';co
 const bxOpts=sel=>{const me2=myK(),o=l=>l.a===me2?0:l.a==='c'?1:2;return'<option value="">— Choisir une catégorie —</option>'+S.budget.lines.slice().sort((a,b)=>o(a)-o(b)).map(l=>`<option value="${l.id}"${l.id===sel?' selected':''}>${W[l.a]} · ${esc(l.n)}</option>`).join('')};
 function bxCard(r){const B=S.budget,sel=r.l||bxSug(r.label),fz=r.cr!=='CRDT'&&bxFuzzy(r),pm=r.d.slice(0,7)!==B.mois;
 if(r.cr==='CRDT')return`<div class="bxc cr" data-bx="${r.id}"><div class="bxt"><div><b>${esc(r.label)}</b><small>${fd(r.d)}${r.h?' · '+r.h:''} · entrée d’argent</small></div><b class="bxv in">+ ${eur(r.v)}</b></div><div class="bxb"><button class="b0" onclick="bxFlip('${r.id}')">C’est une dépense</button><button class="b1" onclick="bxSkip('${r.id}',1)">Ignorer</button></div></div>`;
-return`<div class="bxc" data-bx="${r.id}"><div class="bxt"><div><b>${esc(r.label)}</b><small>${fd(r.d)}${r.h?' · '+r.h:''}${r.sub?' · '+esc(r.sub):''}</small></div><b class="bxv">${eur(r.v)}</b></div>${r.dflag?'<div class="bxf">Date non trouvée : vérifie-la dans « Modifier ».</div>':''}${fz?'<div class="bxf">Peut-être déjà saisie (même montant, date proche). <button class="add" onclick="bxSame(\''+r.id+'\')">Déjà saisie</button></div>':''}
+return`<div class="bxc" data-bx="${r.id}"><div class="bxt"><div><b>${esc(r.label)}</b><small>${fd(r.d)}${r.h?' · '+r.h:''}${r.sub?' · '+esc(r.sub):''}</small></div><b class="bxv">${eur(r.v)}</b></div>${r.dflag?'<div class="bxf">Date non lue : aujourd’hui supposé, vérifie-la dans « Modifier ».</div>':''}${fz?'<div class="bxf">Peut-être déjà saisie (même montant, date proche). <button class="add" onclick="bxSame(\''+r.id+'\')">Déjà saisie</button></div>':''}
 <select class="bxs" onchange="bxSetL('${r.id}',this.value)">${bxOpts(sel)}</select>${pm?`<label class="bxp">Période du budget<select class="bxpp"><option value="${B.mois}">${mlab(B.mois)}</option><option value="${r.d.slice(0,7)}">${mlab(r.d.slice(0,7))}</option></select></label>`:''}
 <details class="bxed"><summary>Modifier</summary><label>Libellé<input class="bxl" value="${esc(r.label)}"></label><div class="bxg"><label>Date<input type="date" class="bxdt" value="${r.d}"></label><label>Heure<input type="time" class="bxh" value="${r.h||''}"></label><label>Montant<input class="bxa" inputmode="decimal" value="${String(r.v).replace('.',',')}"></label></div><button class="add" onclick="bxFlip('${r.id}')">C’est une entrée d’argent</button></details>
 <label class="bxr"><input type="checkbox" class="bxru" ${r.ru?'checked':''}> Retenir la catégorie pour la prochaine fois</label><div class="bxb"><button class="b0" onclick="bxSkip('${r.id}')">Ignorer</button><button class="b1" onclick="bxOk('${r.id}')">Valider</button></div></div>`}
@@ -908,7 +921,7 @@ if(!d||!(v>0))return toast('Vérifie la date et le montant');if(!l)return toast(
 const t={id:uid(),d,l,v:Math.round(v*100)/100,n:lab,p,ca:ln.a||'',cn:ln.n||'',ct:ln.t||'',cs:ln.t==='epargne'?(svOf(ln)||''):'',sg:r.sg};if(h)t.h=h;S.trx.tx.push(t);
 if(ru){const k=bxKey(lab);if(k){S.trx.rules=bxRules().filter(q=>q.k!==k);S.trx.rules.push({k,l})}}
 BXP=BXP.filter(x=>x.id!==id);bxPersist();save('trx');
-if(!BXP.length){bxImgClear();BXS='';BXE='';toast('Tout est validé : capture effacée de la mémoire')}bxRender()}
+if(!BXP.length){bxImgClear();BXS='';BXE='';if(new Date().getHours()>=17)try{localStorage.setItem('txDone',TODAY())}catch(e){}toast('Tout est validé : capture effacée de la mémoire')}bxRender()}
 function exportData(){sheet('Copie tout ce texte (sauvegarde)',[{k:'j',l:'Données',t:'text'}],{j:JSON.stringify({budget:strip(S.budget),agenda:strip(S.agenda),savings:strip(S.savings),trx:strip(S.trx)})},()=>{})}
 function importData(){sheet('Importer des données',[{k:'j',l:'Colle ici le texte de sauvegarde',t:'text'}],{},r=>doImport(r.j))}
 function doImport(t){try{const d=JSON.parse(String(t).trim());deepFix(d);let n=0;['budget','agenda','savings','trx'].forEach(k=>{if(d[k]){S[k]=d[k];save(k);n++}});toast(n?'Données importées':'Rien à importer')}catch(e){toast('Texte invalide : '+e.message)}}
