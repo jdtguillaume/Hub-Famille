@@ -779,7 +779,7 @@ const cl=()=>ov.remove(),q=k=>ov.querySelector(`[data-k=${k}]`);ov.onclick=ev=>{
 ov.querySelector('[data-a=x]').onclick=cl;const dl=ov.querySelector('[data-a=d]');if(dl)dl.onclick=()=>askDel('Supprimer ce virement ? Les soldes concernés seront recalculés.',()=>{S.trx.vir=(S.trx.vir||[]).filter(x=>x.id!==id);cl();save('trx')});
 ov.querySelector('[data-a=ok]').onclick=()=>{const v=+q('v').value,d=q('d').value,err=virOk(st.f.v,st.t.v)||(!(v>0)?'Indique un montant':'')||(!d?'Choisis une date':'');if(err){ov.querySelector('#virr').textContent=err;return}
 const r={f:st.f.v,t:st.t.v,v,d,p:q('p').value,n:q('n').value},V=S.trx.vir=S.trx.vir||[];if(id)Object.assign(old,r);else V.push({id:uid(),...r});cl();save('trx')}}
-const APP_V='23/10 · shifts oubliés validés automatiquement à minuit';
+const APP_V='23/10 · import : en-têtes de date avec total (Hier -1,15 €)';
 const SEAS={normal:'Normal',halloween:'Halloween',noel:'Noël'};
 try{if(localStorage.getItem('season')==='figment')localStorage.removeItem('season');localStorage.removeItem('figImg')}catch(e){}
 const seasonPref=()=>{try{return localStorage.getItem('season')||'auto'}catch(e){return'auto'}};
@@ -848,7 +848,7 @@ if((m=f.match(re3))){const iso=fix(m[1],BXM[m[2]],m[3]);if(iso)return{iso,i:m.in
 if(loose){const tk=[...f.matchAll(/[a-z0-9']+/g)].map(x=>({t:x[0].replace(/'/g,''),i:x.index,e:x.index+x[0].length}));
 for(let k=0;k<tk.length;k++)for(const sp of[1,2]){if(k+sp>tk.length)continue;const t=tk.slice(k,k+sp).map(x=>x.t).join(''),i=tk[k].i,e=tk[k+sp-1].e;
 if(t.length>=8&&bxLev(t,'aujourdhui')<=2)return{iso:ref,i,e};if(t.length>=7&&bxLev(t,'avanthier')<=2)return{iso:bxAddD(ref,-2),i,e};
-if(sp===1&&tk.length===1&&t.length===4&&bxLev(t,'hier')<=1&&!/^(pier|bier|mier|tier|vier|fier|hiez)$/.test(t))return{iso:bxAddD(ref,-1),i,e}}}
+if(loose===2&&sp===1&&tk.length===1&&t.length===4&&bxLev(t,'hier')<=1&&!/^(pier|bier|mier|tier|vier|fier|hiez)$/.test(t))return{iso:bxAddD(ref,-1),i,e}}}
 return null}
 function bxFindTime(txt){const m=String(txt).match(/(?<![\d:,.])([01]?\d|2[0-3])\s?[:h]\s?([0-5]\d)(?![\d])/);return m?{h:String(m[1]).padStart(2,'0')+':'+m[2],i:m.index,e:m.index+m[0].length}:null}
 const bxCut=(t,a,b)=>t.slice(0,a)+' '+t.slice(b);
@@ -863,19 +863,21 @@ const bxTextLines=txt=>String(txt||'').split(/\r?\n/).map((t,i)=>({y:i,text:t.tr
 function bxParse(lines,ref){const P=[];
 for(const ln of lines){const t=String(ln.text||'').replace(/\s+/g,' ').trim();if(!t)continue;const am=bxAmounts(t),a=am.length?am[am.length-1]:null;let rest=t;
  if(a){rest=t.slice(0,a.i)+' '+t.slice(a.e);for(const x of am.slice(0,-1))rest=rest.replace(t.slice(x.i,x.e),' ')}
- rest=rest.replace(/€|\beuros?\b/gi,' ');const dt=bxFindDate(rest,ref,!a&&rest.trim().split(/\s+/).length<=4),tm=bxFindTime(rest);let lab=rest;
+ rest=rest.replace(/€|\beuros?\b/gi,' ');const nt=rest.trim().split(/\s+/).length,dt=bxFindDate(rest,ref,!a?(nt<=4?2:0):(nt<=3?1:0)),tm=bxFindTime(rest);let lab=rest;
  const cuts=[dt&&[dt.i,dt.e],tm&&[tm.i,tm.e]].filter(Boolean).sort((p,q)=>q[0]-p[0]);for(const[p,q]of cuts)lab=bxCut(lab,p,q);
  const lab2=bxClean(lab.replace(BX_WD,' '));P.push({a,dt,tm,lab2,acol:ln.acol||'',y:+ln.y||0,letters:(lab2.match(/[A-Za-zÀ-ÿ]/g)||[]).length})}
 const rows=[];let cur=null,last=null;
+const isHdr=i=>{const p=P[i];if(!(p.a&&p.dt&&p.letters<2))return false;const pv=P[i-1],nx=P[i+1];if(!pv)return true;if(!nx)return false;const gp=p.y-pv.y,gn=nx.y-p.y;if(gp===gn)return!(pv.letters>=3&&!pv.a&&!pv.dt);return gp>=gn*.85};
 const fill=(r,p)=>{if(p.tm&&!r.h)r.h=p.tm.h;if(p.dt&&!r.dx){r.d=p.dt.iso;r.dx=1}};
 for(let i=0;i<P.length;i++){const p=P[i],nx=P[i+1];
  if(!p.a){
   if(p.dt&&p.letters<=4){const pv=P[i-1],gp=pv?p.y-pv.y:1e9,gn=nx?nx.y-p.y:1e9;
    if(last&&last.amt&&!last.dx&&(p.tm||gp<gn*.85)){last.d=p.dt.iso;last.dx=1;if(p.tm&&!last.h)last.h=p.tm.h;continue}
    cur=p.dt.iso;continue}
-  if(nx&&nx.a&&nx.letters<2&&p.letters>=2){last={label:p.lab2,v:0,cr:'DBIT',sg:'',col:'',d:p.dt?p.dt.iso:cur,dx:p.dt?1:0,h:p.tm?p.tm.h:'',sub:'',amt:false,n:0};rows.push(last);continue}
+  if(nx&&nx.a&&nx.letters<2&&p.letters>=2&&!isHdr(i+1)){last={label:p.lab2,v:0,cr:'DBIT',sg:'',col:'',d:p.dt?p.dt.iso:cur,dx:p.dt?1:0,h:p.tm?p.tm.h:'',sub:'',amt:false,n:0};rows.push(last);continue}
   if(last&&last.amt&&last.n<2){fill(last,p);if(p.lab2&&p.lab2.length>2&&last.sub.length<60)last.sub=(last.sub+' '+p.lab2).trim();last.n++}
   continue}
+ if(isHdr(i)){cur=p.dt.iso;continue}
  if(p.letters<2){if(last&&!last.amt){last.v=p.a.v;last.cr=p.a.cr;last.sg=p.a.sg;last.col=p.acol;last.amt=true;fill(last,p)}continue}
  const f=bxFlat(p.lab2);if(/^(solde|balance|disponible|plafond)\b/.test(f)||/^total\s+(du|des|general|mensuel|mois)\b/.test(f)||f==='total')continue;
  last={label:p.lab2,v:p.a.v,cr:p.a.cr,sg:p.a.sg,col:p.acol,d:p.dt?p.dt.iso:cur,dx:p.dt?1:0,h:p.tm?p.tm.h:'',sub:'',amt:true,n:0};rows.push(last)}
