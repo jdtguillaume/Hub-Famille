@@ -646,7 +646,7 @@ function shiftTarget(){const me=myK();if(!me)return null;if(TESTSH&&!TESTSH.ok)r
 function shiftBanner(){const t=shiftTarget();if(!t)return'';const e=t.e;return`<div class="shiftb" onclick="wkDayAt('${t.k}','${t.w}',${t.i})"><div class="sbt"><b>Valide ton shift</b><small>${fd(t.D)} · ${e.s} → ${e.f}${t.k==='test'?' · TEST':''}</small></div><span class="sbb">Valider</span></div>`}
 const txDoneKey=()=>{try{return localStorage.getItem('txDone')||''}catch(e){return''}};
 const txBannerOn=()=>!!myK()&&(TESTTX||(new Date().getHours()>=17&&txDoneKey()!==TODAY()));
-function txBanner(){if(!txBannerOn())return'';const n=BXP.filter(r=>r.cr!=='CRDT').length;return`<div class="shiftb txb" onclick="txChoice()"><div class="sbt"><b>${n?n+' transaction'+(n>1?'s':'')+' à valider':'Valide tes transactions'}${TESTTX?' · TEST':''}</b><small>${n?'Reprends ton import de capture':'Importe ta capture ou indique qu’il n’y en a pas'}</small></div><span class="sbb">Valider</span></div>`}
+function txBanner(){if(!txBannerOn())return'';const n=BXP.filter(r=>r.cr!=='CRDT').length;return`<div class="shiftb txb" onclick="txChoice()"><div class="sbt"><b>${n?n+' transaction'+(n>1?'s':'')+' à valider':'Valide tes transactions'}${TESTTX?' · TEST':''}</b></div><span class="sbb">Valider</span></div>`}
 function txChoice(){const n=BXP.filter(r=>r.cr!=='CRDT').length;if(n){txGoImport();return}
 const o=document.createElement('div');o.className='ov';o.innerHTML=`<div class="sh"><h3>Tes transactions du jour</h3><div class="mut" style="margin-bottom:14px">As-tu des transactions à valider aujourd’hui ?</div><button class="b1 txc1" style="width:100%;padding:15px;font-size:16px">Importer</button><button class="b0 txc2" style="width:100%;padding:15px;font-size:16px;margin-top:10px">Pas de transactions</button><div class="bt"><button class="b0 txc3">Annuler</button></div></div>`;document.body.append(o);const cl=()=>o.remove();o.onclick=e=>{if(e.target===o)cl()};
 o.querySelector('.txc1').onclick=()=>{cl();txGoImport()};o.querySelector('.txc2').onclick=()=>{cl();txDismiss();toast('Noté : pas de transactions aujourd’hui')};o.querySelector('.txc3').onclick=cl}
@@ -776,7 +776,7 @@ const cl=()=>ov.remove(),q=k=>ov.querySelector(`[data-k=${k}]`);ov.onclick=ev=>{
 ov.querySelector('[data-a=x]').onclick=cl;const dl=ov.querySelector('[data-a=d]');if(dl)dl.onclick=()=>askDel('Supprimer ce virement ? Les soldes concernés seront recalculés.',()=>{S.trx.vir=(S.trx.vir||[]).filter(x=>x.id!==id);cl();save('trx')});
 ov.querySelector('[data-a=ok]').onclick=()=>{const v=+q('v').value,d=q('d').value,err=virOk(st.f.v,st.t.v)||(!(v>0)?'Indique un montant':'')||(!d?'Choisis une date':'');if(err){ov.querySelector('#virr').textContent=err;return}
 const r={f:st.f.v,t:st.t.v,v,d,p:q('p').value,n:q('n').value},V=S.trx.vir=S.trx.vir||[];if(id)Object.assign(old,r);else V.push({id:uid(),...r});cl();save('trx')}}
-const APP_V='23/10 · bouton transactions : Valider puis Importer ou Pas de transactions';
+const APP_V='23/10 · bannière transactions sans consigne';
 const SEAS={normal:'Normal',halloween:'Halloween',noel:'Noël'};
 try{if(localStorage.getItem('season')==='figment')localStorage.removeItem('season');localStorage.removeItem('figImg')}catch(e){}
 const seasonPref=()=>{try{return localStorage.getItem('season')||'auto'}catch(e){return'auto'}};
