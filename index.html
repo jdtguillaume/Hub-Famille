@@ -256,6 +256,7 @@ header{position:relative;z-index:8}#hdeco{position:absolute;left:0;right:0;top:1
 .ov{z-index:70}#toast{z-index:80}
 .bxinfo{margin-top:10px;padding:8px 10px;border-radius:10px;background:rgba(111,243,195,.1);border:1px solid rgba(111,243,195,.35);font-size:13px}.bxkn{margin-top:10px}.bxkn summary{cursor:pointer;font-size:14px;color:var(--mut)}.bxk{display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--bd)}.bxk>div{flex:1;min-width:0}.bxk b{display:block;font-size:14px;word-break:break-word}.bxk small{color:var(--mut);font-size:12px}.bxk .add{width:auto;flex:none}
 .bxsel{width:100%;margin-top:10px;padding:12px 14px;border-radius:12px;border:1px solid var(--bd);background:var(--glass);color:var(--tx);font-size:15px;display:flex;justify-content:space-between;align-items:center;gap:8px;text-align:left}.bxsl{flex:1;min-width:0}.bxpf{display:flex;flex-direction:column;gap:10px;margin:10px 0 6px}.bxpb{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:14px 16px;border-radius:16px;border:1px solid var(--bd);border-left:8px solid var(--fc);background:var(--glass);color:var(--tx)}.bxpb b{font-size:18px}.bxpb small{color:var(--mut);font-size:12px}.bxty{margin:12px 0 4px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}.bxcat{width:100%;text-align:left;padding:13px 14px;margin-bottom:6px;border-radius:12px;border:1px solid var(--bd);background:var(--glass);color:var(--tx);font-size:16px}.bxcat.on{border-color:var(--a1,#ad8fff);box-shadow:0 0 0 2px var(--a1,#ad8fff)}
+.hmorg{width:100%;margin:24px 0 10px}#hmov .sh{max-height:92vh;overflow:auto}.hmr{display:flex;align-items:center;gap:6px;padding:10px 0;border-top:1px solid var(--bd)}.hmr.off .hmn{opacity:.45}.hmn{flex:1;min-width:0}.hmn b{display:block;font-size:15px}.hmn small{font-size:12px;color:var(--mut)}.hmb{min-width:42px;height:42px;padding:0 8px;border-radius:12px;border:1px solid var(--bd);background:var(--glass);color:var(--tx);font-size:14px}.hmb:disabled{opacity:.3}.hmv{min-width:84px;font-size:13px}.hmv.on{border-color:var(--a1,#ad8fff);background:var(--lavs,rgba(173,143,255,.17))}
 </style></head><body><div id="deco"></div>
 <header><div id="hdeco"></div><button class="lgb" onclick="go('home')" aria-label="Accueil"><img class="lg" src="icon-192.png?v=3" alt=""></button><b class="tt">Tiki's App</b><span id="tte"></span><button class="hb bell" onclick="openInbox()" aria-label="Notifications">🔔<i id="bn"></i></button><button class="hb" onclick="logout()" aria-label="Déconnexion"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg></button><span class="sp"></span><button class="hb" onclick="undo()" aria-label="Annuler">↶</button><button class="hb" onclick="redo()" aria-label="Rétablir">↷</button></header><div id="subnav" style="display:none"></div><div id="m"></div>
 <div id="login"><div class="card" style="width:min(340px,90%)"><h3 style="margin-top:0">Tiki's App</h3><input id="em" type="email" placeholder="E-mail" autocomplete="username"><input id="pw" type="password" placeholder="Mot de passe" autocomplete="current-password"><div id="err" style="color:#c0392b;font-size:13px;min-height:18px"></div><button class="b1" style="width:100%" onclick="login()">Se connecter</button></div></div>
@@ -363,14 +364,27 @@ else if(pr>=30)L.push('☂️ Risque d’averses ('+pr+' %) : un petit parapluie
 if(c>=95)L.push('⚡ Orages possibles : évite de rester dehors.');
 if(c===45||c===48)L.push('🌫️ Brouillard : prends des vêtements bien visibles si tu roules.');
 return'<b>👕 Comment s’habiller</b>'+L.map(l=>'<div>'+l+'</div>').join('')}
-function home(){const T=TODAY(),n=w=>EV().filter(e=>e.w===w&&onDay(e,T)).length+TK().filter(t=>t.w===w&&!t.x&&nextTk(t)&&nextTk(t)<=T).length,fr=hol(T);
+const HM_DEF=['pills','shift','tx','today','money','next','bday','rem'];
+const HM_LAB={pills:'Compteurs (Guillaume · Pauline · Commun)',shift:'Bouton « Valide ton shift »',tx:'Bouton « Valide tes transactions »',today:'Aujourd’hui',money:'Argent',next:'Prochainement',bday:'Anniversaires',rem:'Rappels à venir'};
+const HM_NOTE={shift:'N’apparaît qu’en fin de shift',tx:'N’apparaît que de 17h à minuit'};
+let HMC={};const hmKey=()=>'homeLayout'+(myK()?':'+myK():'');
+function hmL(){const k=hmKey();if(HMC[k])return HMC[k];let o={};try{o=JSON.parse(localStorage.getItem(k)||'{}')}catch(e){}const ord=(Array.isArray(o.order)?o.order:[]).filter((x,i,a)=>HM_DEF.includes(x)&&a.indexOf(x)===i);HM_DEF.forEach(x=>{if(!ord.includes(x))ord.push(x)});return HMC[k]={order:ord,hide:(o.hide&&typeof o.hide==='object')?o.hide:{}}}
+function hmSave(){try{localStorage.setItem(hmKey(),JSON.stringify(hmL()))}catch(e){}}
+function hmMove(k,d){const L=hmL(),i=L.order.indexOf(k),j=i+d;if(i<0||j<0||j>=L.order.length)return;[L.order[i],L.order[j]]=[L.order[j],L.order[i]];hmSave();hmDraw();render()}
+function hmTog(k){const L=hmL();if(L.hide[k])delete L.hide[k];else L.hide[k]=1;hmSave();hmDraw();render()}
+function hmReset(){HMC[hmKey()]={order:[...HM_DEF],hide:{}};hmSave();hmDraw();render();toast('Accueil remis par défaut')}
+function homeOrg(){if(document.getElementById('hmov'))return;const o=document.createElement('div');o.className='ov';o.id='hmov';document.body.append(o);o.onclick=e=>{if(e.target===o)o.remove()};hmDraw()}
+function hmDraw(){const o=document.getElementById('hmov');if(!o)return;const L=hmL();o.innerHTML=`<div class="sh"><h3>Organiser mon accueil</h3><div class="mut" style="margin-bottom:10px">Monte ou descends chaque bloc, et masque ceux que tu ne veux pas voir. Ce réglage est propre à ton téléphone.</div>${L.order.map((k,i)=>`<div class="hmr${L.hide[k]?' off':''}"><div class="hmn"><b>${HM_LAB[k]}</b>${HM_NOTE[k]?`<small>${HM_NOTE[k]}</small>`:''}</div><button class="hmb" ${i===0?'disabled':''} onclick="hmMove('${k}',-1)" aria-label="Monter">▲</button><button class="hmb" ${i===L.order.length-1?'disabled':''} onclick="hmMove('${k}',1)" aria-label="Descendre">▼</button><button class="hmb hmv${L.hide[k]?'':' on'}" onclick="hmTog('${k}')" aria-label="Afficher ou masquer">${L.hide[k]?'Masqué':'Visible'}</button></div>`).join('')}<div class="bt"><button class="b0" onclick="hmReset()">Par défaut</button><button class="b1" onclick="document.getElementById('hmov').remove()">Terminer</button></div></div>`}
+function home(){const T=TODAY(),n=w=>EV().filter(e=>e.w===w&&onDay(e,T)).length+TK().filter(t=>t.w===w&&!t.x&&nextTk(t)&&nextTk(t)<=T).length,fr=hol(T),L=hmL();
+const sec={pills:`<div class="pills">${['g','p','c'].map(w=>`<div class="pill ${w}"><b>${n(w)}</b><span>${W[w]}</span></div>`).join('')}</div>`,shift:shiftBanner(),tx:txBanner(),
+today:`<h2>Aujourd’hui</h2>${tl()}`,money:`<h2>Argent</h2>${moneyCard()}`,
+next:`<h2>Prochainement</h2>${upEv().filter(e=>e.d>T).slice(0,6).map(evRow).join('')||none('Rien de prévu les prochains jours')}`,
+bday:`<h2>Anniversaires</h2>${upBd().slice(0,4).map(bdRow).join('')||none('Aucun anniversaire')}`,
+rem:`<h2>Rappels à venir</h2>${upTk().filter(t=>{const x=nextTk(t);return !x||x>T}).slice(0,6).map(tkRow).join('')||none('Aucun rappel à venir')}`};
+const vis=L.order.filter(k=>!L.hide[k]);let body=vis.map(k=>sec[k]+(k==='pills'?sizeWarn():'')).join('\n');if(!vis.includes('pills'))body=sizeWarn()+'\n'+body;
 return`<div class="hero"><div class="hi">Bonjour ${esc(me)} <span class="hand" onclick="openStory()" title="Touche pour voir ta journée">${handIcon()}</span></div><div class="hd">${dt(T).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})}${fr?' · '+esc(fr):''}</div><div class="hrow">${wxChip()}</div></div>
-<div class="pills">${['g','p','c'].map(w=>`<div class="pill ${w}"><b>${n(w)}</b><span>${W[w]}</span></div>`).join('')}</div>${sizeWarn()}${shiftBanner()}${txBanner()}
-<h2>Aujourd’hui</h2>${tl()}
-<h2>Argent</h2>${moneyCard()}
-<h2>Prochainement</h2>${upEv().filter(e=>e.d>T).slice(0,6).map(evRow).join('')||none('Rien de prévu les prochains jours')}
-<h2>Anniversaires</h2>${upBd().slice(0,4).map(bdRow).join('')||none('Aucun anniversaire')}
-<h2>Rappels à venir</h2>${upTk().filter(t=>{const x=nextTk(t);return !x||x>T}).slice(0,6).map(tkRow).join('')||none('Aucun rappel à venir')}`}
+${body}
+<button class="b0 hmorg" onclick="homeOrg()">⚙️ Organiser mon accueil</button>`}
 /* ===== Calendrier : Jour / Semaine / Mois ===== */
 let calView='m',calTk=0,calScroll=0;const CVH=56,CVW=34;
 const hm=s=>{const a=String(s||'0:0').split(':').map(Number);return a[0]*60+(a[1]||0)};
@@ -779,7 +793,7 @@ const cl=()=>ov.remove(),q=k=>ov.querySelector(`[data-k=${k}]`);ov.onclick=ev=>{
 ov.querySelector('[data-a=x]').onclick=cl;const dl=ov.querySelector('[data-a=d]');if(dl)dl.onclick=()=>askDel('Supprimer ce virement ? Les soldes concernés seront recalculés.',()=>{S.trx.vir=(S.trx.vir||[]).filter(x=>x.id!==id);cl();save('trx')});
 ov.querySelector('[data-a=ok]').onclick=()=>{const v=+q('v').value,d=q('d').value,err=virOk(st.f.v,st.t.v)||(!(v>0)?'Indique un montant':'')||(!d?'Choisis une date':'');if(err){ov.querySelector('#virr').textContent=err;return}
 const r={f:st.f.v,t:st.t.v,v,d,p:q('p').value,n:q('n').value},V=S.trx.vir=S.trx.vir||[];if(id)Object.assign(old,r);else V.push({id:uid(),...r});cl();save('trx')}}
-const APP_V='23/10 · import : en-têtes de date avec total (Hier -1,15 €)';
+const APP_V='24/10 · accueil organisable';
 const SEAS={normal:'Normal',halloween:'Halloween',noel:'Noël'};
 try{if(localStorage.getItem('season')==='figment')localStorage.removeItem('season');localStorage.removeItem('figImg')}catch(e){}
 const seasonPref=()=>{try{return localStorage.getItem('season')||'auto'}catch(e){return'auto'}};
