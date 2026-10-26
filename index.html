@@ -265,8 +265,7 @@ header{position:relative;z-index:8}#hdeco{position:absolute;left:0;right:0;top:1
 <div id="story"></div>
 <canvas id="fx"></canvas>
 <button id="cvfab" class="cvfab" onclick="evForm('',selDay)" aria-label="Nouvel événement">+</button><nav><i id="navsl"></i><button data-t="home"><span class="i"></span>Accueil</button><button data-t="org"><span class="i"></span>Organisateur</button><button data-t="fin"><span class="i"></span>Finances</button><button data-t="par"><span class="i"></span>Paramètres</button></nav>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-functions-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js"></script>
 <script>
 const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const p2=n=>String(n).padStart(2,'0'),iso=d=>d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate()),dt=s=>new Date(s+'T00:00:00');
@@ -818,7 +817,7 @@ const cl=()=>ov.remove(),q=k=>ov.querySelector(`[data-k=${k}]`);ov.onclick=ev=>{
 ov.querySelector('[data-a=x]').onclick=cl;const dl=ov.querySelector('[data-a=d]');if(dl)dl.onclick=()=>askDel('Supprimer ce virement ? Les soldes concernés seront recalculés.',()=>{S.trx.vir=(S.trx.vir||[]).filter(x=>x.id!==id);cl();save('trx')});
 ov.querySelector('[data-a=ok]').onclick=()=>{const v=+q('v').value,d=q('d').value,err=virOk(st.f.v,st.t.v)||(!(v>0)?'Indique un montant':'')||(!d?'Choisis une date':'');if(err){ov.querySelector('#virr').textContent=err;return}
 const r={f:st.f.v,t:st.t.v,v,d,p:q('p').value,n:q('n').value},V=S.trx.vir=S.trx.vir||[];if(id)Object.assign(old,r);else V.push({id:uid(),...r});cl();save('trx')}}
-const APP_V='24/10 · banque (Enable Banking) : opérations à classer';
+const APP_V='24/10 · banque : correctif de connexion au serveur';
 const SEAS={normal:'Normal',halloween:'Halloween',noel:'Noël'};
 try{if(localStorage.getItem('season')==='figment')localStorage.removeItem('season');localStorage.removeItem('figImg')}catch(e){}
 const seasonPref=()=>{try{return localStorage.getItem('season')||'auto'}catch(e){return'auto'}};
@@ -991,7 +990,8 @@ if(ru){const k=bxKey(lab);if(k){S.trx.rules=bxRules().filter(q=>q.k!==k);S.trx.r
 BXP=BXP.filter(x=>x.id!==id);bxPersist();save('trx');bkMerge();
 if(!BXP.length){bxImgClear();BXS='';BXE='';if(TESTTX)TESTTX=false;else if(new Date().getHours()>=17)try{localStorage.setItem('txDone',TODAY())}catch(e){}toast('Tout est validé : capture effacée de la mémoire')}bxRender()}
 /* ===== Banque : synchronisation automatique (Enable Banking, lecture seule) ===== */
-const bkFn=n=>firebase.app().functions('europe-west1').httpsCallable(n);
+const bkFn=n=>async d=>{const u=auth.currentUser;if(!u)throw new Error('Non connecté');let r,j={};try{const tk=await u.getIdToken();r=await fetch('https://europe-west1-hub-famille-3c14f.cloudfunctions.net/'+n,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+tk},body:JSON.stringify({data:d||{}})})}catch(e){throw new Error('Serveur injoignable : vérifie que le déploiement des fonctions est terminé')}
+try{j=await r.json()}catch(e){}if(!r.ok||j.error){throw new Error((j.error&&j.error.message)||('Le serveur a répondu '+r.status+(r.status===404?' : fonctions non déployées ?':'')))}return{data:j.result}};
 const bkErr=e=>String((e&&e.message)||'erreur').replace(/^[a-z-]+\/[a-z-]+:\s*/i,'').slice(0,180);
 const bkD=iso=>iso?iso.slice(8,10)+'/'+iso.slice(5,7)+'/'+iso.slice(0,4):'',bkDH=iso=>{const d=new Date(iso);return isNaN(d)?'':p2(d.getDate())+'/'+p2(d.getMonth()+1)+' '+p2(d.getHours())+':'+p2(d.getMinutes())};
 const bxB0=sg=>String(sg||'').replace(/\|\d\d:\d\d\|/,'|').replace(/#\d+$/,'');
