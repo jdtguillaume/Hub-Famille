@@ -83,3 +83,59 @@ if(L0.length&&anyOk)L0.forEach(x=>fresh.push(x.k2))}
 if(fresh.length)await stRef.set({sent:[...sent,...fresh].slice(-300)});
 try{await syncGcal(ag)}catch(err){console.error('Google Agenda :',err.message)}});
 if(process.env.FAKE_NOW)exports._t={buildSummary,nextTk,paris,ferie,gBody,gBodyTk,gBodyBd,hexId,syncGcal};
+
+/* ===================== Banques : Enable Banking (lecture seule) ===================== */
+const {onCall,HttpsError}=require('firebase-functions/v2/https');
+const {defineSecret}=require('firebase-functions/params');
+const EB_KEY=defineSecret('ENABLE_KEY');
+const EB_APP=defineString('ENABLE_APP_ID',{default:''});
+const EB_REDIRECT=defineString('ENABLE_REDIRECT',{default:'https://jdtguillaume.github.io/Hub-Famille/'});
+const EB_URL='https://api.enablebanking.com';
+const OKMAIL={'jdt.guillaume@gmail.com':'g','pauline.lamarque96@orange.fr':'p'},MAILOF={g:'jdt.guillaume@gmail.com',p:'pauline.lamarque96@orange.fr'};
+const whoOf=req=>{const e=String((req.auth&&req.auth.token&&req.auth.token.email)||'').toLowerCase(),w=OKMAIL[e];if(!w)throw new HttpsError('permission-denied','Compte non autorisé');return w};
+const b64u=x=>Buffer.from(x).toString('base64url');
+function ebJwt(){const t=Math.floor(Date.now()/1000),h=b64u(JSON.stringify({typ:'JWT',alg:'RS256',kid:EB_APP.value()})),p=b64u(JSON.stringify({iss:'enablebanking.com',aud:'api.enablebanking.com',iat:t,exp:t+3600})),key=String(EB_KEY.value()).replace(/\\n/g,'\n').trim();return h+'.'+p+'.'+crypto.createSign('RSA-SHA256').update(h+'.'+p).sign(key).toString('base64url')}
+async function eb(method,path,body){const r=await fetch(EB_URL+path,{method,headers:{Authorization:'Bearer '+ebJwt(),'Content-Type':'application/json',Accept:'application/json'},body:body?JSON.stringify(body):undefined}),txt=await r.text();let j={};try{j=txt?JSON.parse(txt):{}}catch(e){j={raw:txt}}
+if(!r.ok){const e=new Error('Enable Banking '+r.status+' : '+String(j.message||j.error||j.raw||txt).slice(0,300));e.status=r.status;throw e}return j}
+const clean=s=>String(s==null?'':s).replace(/\s+/g,' ').trim().slice(0,90);
+const bankStat=(w,o)=>db.doc('bankstatus/'+w).set({...o,mail:MAILOF[w]},{merge:true});
+function mapTx(w,a,t){const st=String(t.status||'BOOK').toUpperCase();if(st==='PDNG'||st==='PENDING')return null;
+const am=t.transaction_amount||{},raw=+am.amount;if(!raw)return null;let dir=String(t.credit_debit_indicator||'').toUpperCase();if(dir!=='DBIT'&&dir!=='CRDT')dir=raw<0?'DBIT':'CRDT';
+const d=String(t.booking_date||t.value_date||t.transaction_date||'').slice(0,10);if(!/^\d{4}-\d{2}-\d{2}$/.test(d))return null;
+const rem=[].concat(t.remittance_information||[]).filter(Boolean).join(' '),cp=dir==='DBIT'?(t.creditor&&t.creditor.name):(t.debtor&&t.debtor.name),lab=clean(cp||rem||t.note||'Opération'),ref=String(t.entry_reference||t.transaction_id||t.reference_number||'');
+const id=crypto.createHash('sha1').update(w+'|'+a.uid+'|'+(ref||(d+'|'+Math.abs(raw)+'|'+lab+'|'+dir))).digest('hex').slice(0,28);
+return{id,w,mail:MAILOF[w],d,v:Math.round(Math.abs(raw)*100)/100,cr:dir,lab,cur:am.currency||'EUR',st:'new'}}
+async function bankPut(it){const ref=db.doc('bankinbox/'+it.id),s=await ref.get();if(s.exists)return 0;await ref.set({...it,at:Date.now()});return 1}
+async function bankPurge(w){const q=await db.collection('bankinbox').get(),lim=Date.now()-100*864e5,jobs=[];q.forEach(d=>{const v=d.data();if(v.w===w&&(v.at||0)<lim)jobs.push(d.ref.delete())});await Promise.all(jobs);return jobs.length}
+async function syncWho(w,back){const ref=db.doc('bank/'+w),sn=await ref.get();if(!sn.exists)return 0;const B=sn.data(),T=paris(now()).date;
+if(B.until&&Date.parse(B.until)<Date.now()){await bankStat(w,{err:'Autorisation expirée : reconnecte ta banque',expired:true});return 0}
+const from=back?add(T,-back):(B.last?add(B.last,-4):add(T,-60));let added=0;
+for(const a of B.accounts||[]){let ck=null,pg=0;do{const r=await eb('GET','/accounts/'+a.uid+'/transactions?date_from='+from+(ck?'&continuation_key='+encodeURIComponent(ck):''));for(const t of r.transactions||[]){const it=mapTx(w,a,t);if(it)added+=await bankPut(it)}ck=r.continuation_key||null;pg++}while(ck&&pg<8)}
+await ref.update({last:T});await bankStat(w,{last:new Date().toISOString(),err:null,expired:false,added});return added}
+const BCO={region:REGION,secrets:[EB_KEY],cors:true};
+const asList=r=>Array.isArray(r)?r:(r&&r.aspsps)||[];
+exports.bankBanks=onCall(BCO,async req=>{whoOf(req);const q=String((req.data||{}).q||'').toLowerCase(),f=L=>L.map(a=>({name:a.name,country:a.country||'FR'})).filter(a=>a.name&&a.name.toLowerCase().includes(q));
+let L=f(asList(await eb('GET','/aspsps?country=FR')));if(!L.length)L=f(asList(await eb('GET','/aspsps')));return{banks:L.sort((a,b)=>a.name.localeCompare(b.name)).slice(0,60)}});
+exports.bankStart=onCall(BCO,async req=>{const w=whoOf(req),d=req.data||{},bank=String(d.bank||'').trim(),country=String(d.country||'FR');if(!bank)throw new HttpsError('invalid-argument','Banque manquante');
+const state=crypto.randomBytes(16).toString('hex'),body=days=>({access:{valid_until:new Date(Date.now()+days*864e5).toISOString()},aspsp:{name:bank,country},state,redirect_url:EB_REDIRECT.value(),psu_type:'personal',language:'fr'});
+let r;try{r=await eb('POST','/auth',body(170))}catch(e){if(e.status===400)r=await eb('POST','/auth',body(90));else throw e}
+if(!r||!r.url)throw new HttpsError('internal','Pas d’adresse de connexion reçue');await db.doc('bankstate/'+state).set({w,bank,country,at:Date.now()});return{url:r.url}});
+exports.bankFinish=onCall(BCO,async req=>{const w=whoOf(req),d=req.data||{},code=String(d.code||''),state=String(d.state||'');if(!code||!state)throw new HttpsError('invalid-argument','Retour de la banque incomplet');
+const sref=db.doc('bankstate/'+state),ss=await sref.get();if(!ss.exists||ss.data().w!==w||Date.now()-ss.data().at>30*60*1000)throw new HttpsError('failed-precondition','Demande expirée ou inconnue : recommence la connexion');
+const r=await eb('POST','/sessions',{code});await sref.delete();
+const accs=(r.accounts||[]).map(a=>({uid:a.uid||a.account_uid||a.id,name:clean(a.name||a.product||(a.account_id&&a.account_id.iban?'Compte '+String(a.account_id.iban).slice(-4):'Compte')),cur:a.currency||'EUR'})).filter(a=>a.uid);
+if(!accs.length)throw new HttpsError('failed-precondition','Aucun compte renvoyé par la banque');
+const bank=(r.aspsp&&r.aspsp.name)||ss.data().bank,until=(r.access&&r.access.valid_until)||new Date(Date.now()+90*864e5).toISOString();
+await db.doc('bank/'+w).set({session:r.session_id||'',accounts:accs,bank,until,at:Date.now(),last:null,manual:[]});
+await bankStat(w,{ok:true,bank,n:accs.length,until,last:null,err:null,expired:false,added:0});
+let added=0;try{added=await syncWho(w,60)}catch(e){await bankStat(w,{err:clean(e.message)})}
+return{ok:true,bank,n:accs.length,added}});
+exports.bankSyncNow=onCall(BCO,async req=>{const w=whoOf(req),ref=db.doc('bank/'+w),sn=await ref.get();if(!sn.exists)throw new HttpsError('failed-precondition','Aucune banque reliée');
+const t=Date.now(),man=((sn.data().manual)||[]).filter(x=>t-x<864e5);if(man.length>=2)throw new HttpsError('resource-exhausted','Limite atteinte : 2 actualisations manuelles par jour (la synchro automatique tourne toute seule)');
+await ref.update({manual:[...man,t]});try{const added=await syncWho(w);return{ok:true,added}}catch(e){await bankStat(w,{err:clean(e.message)});throw new HttpsError('internal',clean(e.message))}});
+exports.bankDisconnect=onCall(BCO,async req=>{const w=whoOf(req),ref=db.doc('bank/'+w),sn=await ref.get();
+if(sn.exists&&sn.data().session){try{await eb('DELETE','/sessions/'+sn.data().session)}catch(e){console.log('fermeture de session :',e.message)}}
+await ref.delete();await db.doc('bankstatus/'+w).delete();
+const q=await db.collection('bankinbox').get();let n=0;const jobs=[];q.forEach(d=>{const v=d.data();if(v.w===w&&v.st==='new'){jobs.push(d.ref.delete());n++}});await Promise.all(jobs);return{ok:true,effacees:n}});
+exports.bankSync=onSchedule({schedule:'every 8 hours',timeZone:TZ,region:REGION,secrets:[EB_KEY],timeoutSeconds:300},async()=>{for(const w of['g','p']){try{await syncWho(w);await bankPurge(w)}catch(e){console.error('banque',w,e.message);await bankStat(w,{err:clean(e.message)}).catch(()=>{})}}});
+if(process.env.FAKE_NOW)exports._bank={mapTx,syncWho,ebJwt,whoOf,bankPurge};
